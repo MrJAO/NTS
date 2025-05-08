@@ -7,8 +7,7 @@
   },
   "publisher": {
     "name": "mrjao",
-    "website": "https://nts-sigma.vercel.app"
+    "url": "https://nts-sigma.vercel.app"
   },
-  "url": "https://nts-sigma.vercel.app",
-  "requestedPermissions": ["read", "write"]
+  "url": "https://nts-sigma.vercel.app"
 }
