@@ -91,11 +91,12 @@
 
       const context = await sdk.context;
 
-      window.addEventListener("DOMContentLoaded", () => {
+      window.addEventListener("DOMContentLoaded", async () => {
+        const context = await sdk.context;
         document.getElementById("fid").textContent = `FID: ${context.user.fid}`;
         document.getElementById("username").textContent = `Username: ${context.user.username}`;
         sdk.actions.ready();
-      });
+         });
     </script>
   </head>
   <body>
