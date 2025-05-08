@@ -10,6 +10,9 @@
     "url": "https://nts-sigma.vercel.app"
   },
   "url": "https://nts-sigma.vercel.app/frame.html",
+  "embed": {
+    "url": "https://nts-sigma.vercel.app/frame.html"
+  },
   "accountAssociation": {
     "header": "eyJmaWQiOjEwNzQxMjcsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHhDNjNlODQ5YkEyOTkwM0JjYUUzYTY0MDRDOTFlZTU5NmI5RTZBZDgxIn0",
     "payload": "eyJkb21haW4iOiJudHMtc2lnbWEudmVyY2VsLmFwcCJ9",
@@ -17,7 +20,7 @@
   },
   "frame": {
     "version": "1",
-    "name": "Example Frame",
+    "name": "NTS Frame",
     "iconUrl": "https://nts-sigma.vercel.app/icon.png",
     "homeUrl": "https://nts-sigma.vercel.app",
     "imageUrl": "https://nts-sigma.vercel.app/image.png",
