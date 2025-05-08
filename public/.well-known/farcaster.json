@@ -1,0 +1,8 @@
+{
+  "name": "NTS Mini App",
+  "description": "Display Farcaster ID, Username, and connect wallet",
+  "icon": "https://nts-sigma.vercel.app/favicon.ico",
+  "url": "https://nts-sigma.vercel.app",
+  "requestedPermissions": ["read", "write"],
+  "redirects": []
+}
