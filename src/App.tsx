@@ -43,35 +43,48 @@ function NTSApp() {
   useEffect(() => {
     const loadContext = async () => {
       const context = await sdk.context;
-      setFid(context.user.fid);
-      setUsername(context.user.username ?? null);
+      setFid(context?.user?.fid ?? null);
+      setUsername(context?.user?.username ?? null);
     };
     loadContext();
   }, []);
 
   const handleConnect = () => {
-    const connector = connectors.find(c => c.ready)
+    const connector = connectors.find(c => c.ready);
     if (connector) {
-      connect({ connector })
+      connect({ connector });
     } else {
-      alert('No wallet connector available')
+      alert('No wallet connector available');
     }
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>NTS – Mini App</h2>
-      <p>🪪 FID: {fid}</p>
-      <p>👤 Username: {username}</p>
+    <div className="app-container">
+      <div className="pixel-header">
+        <div className="user-box">
+          <span>🪪 FID: {fid ?? '—'}</span>
+          <span>👤 Username: {username ?? '—'}</span>
+        </div>
+        <div>
+          {isConnected ? (
+            <>
+              <p>🔗 Wallet: {address}</p>
+              <button className="pixel-button" onClick={() => disconnect()}>
+                Disconnect
+              </button>
+            </>
+          ) : (
+            <button className="pixel-button" onClick={handleConnect}>
+              Connect Wallet
+            </button>
+          )}
+        </div>
+      </div>
 
-      {isConnected ? (
-        <>
-          <p>🔗 Wallet: {address}</p>
-          <button onClick={() => disconnect()}>Disconnect</button>
-        </>
-      ) : (
-        <button onClick={handleConnect}>Connect Wallet</button>
-      )}
+      <div className="tab-content text-center">
+        <p>Welcome to NTS on Monad Testnet!</p>
+        <p>This Mini App shows your Farcaster ID, Username, and Wallet status.</p>
+      </div>
     </div>
   );
 }
