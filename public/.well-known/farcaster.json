@@ -3,11 +3,27 @@
   "app": {
     "name": "NTS Mini App",
     "description": "Display Farcaster ID, Username, and connect wallet",
-    "icon": "https://nts-sigma.vercel.app/favicon.ico"
+    "icon": "https://nts-sigma.vercel.app/Overgas.png"
   },
   "publisher": {
     "name": "mrjao",
     "url": "https://nts-sigma.vercel.app"
   },
-  "url": "https://nts-sigma.vercel.app"
+  "url": "https://nts-sigma.vercel.app",
+  "accountAssociation": {
+    "header": "eyJmaWQiOjEwNzQxMjcsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHhDNjNlODQ5YkEyOTkwM0JjYUUzYTY0MDRDOTFlZTU5NmI5RTZBZDgxIn0",
+    "payload": "eyJkb21haW4iOiJudHMtc2lnbWEudmVyY2VsLmFwcCJ9",
+    "signature": "MHhiMzZlYjNkNTdjMDBlOTNmYTYwYmNhM2QzZjZiMjEyZTljZjFjY2FkNTI3ZTE0MGFkMDU3M2VmMmQ4MGM5YjM4MWNjYmQ2ZThjZjAyZGEwNDE5YzAyYzA2MzNjNzc1YTQ4ZWZjYWJkMDFjYTA1NzQ0MGZkZmQ2ODkyMWZlNTNhNTFj"
+  },
+  "frame": {
+    "version": "1",
+    "name": "Example Frame",
+    "iconUrl": "https://nts-sigma.vercel.app/icon.png",
+    "homeUrl": "https://nts-sigma.vercel.app",
+    "imageUrl": "https://nts-sigma.vercel.app/image.png",
+    "buttonTitle": "Check this out",
+    "splashImageUrl": "https://nts-sigma.vercel.app/splash.png",
+    "splashBackgroundColor": "#eeccff",
+    "webhookUrl": "https://nts-sigma.vercel.app/api/webhook"
+  }
 }
