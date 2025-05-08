@@ -9,7 +9,7 @@
     "name": "mrjao",
     "url": "https://nts-sigma.vercel.app"
   },
-  "url": "https://nts-sigma.vercel.app",
+  "url": "https://nts-sigma.vercel.app/frame.html",
   "accountAssociation": {
     "header": "eyJmaWQiOjEwNzQxMjcsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHhDNjNlODQ5YkEyOTkwM0JjYUUzYTY0MDRDOTFlZTU5NmI5RTZBZDgxIn0",
     "payload": "eyJkb21haW4iOiJudHMtc2lnbWEudmVyY2VsLmFwcCJ9",
