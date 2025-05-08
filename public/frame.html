@@ -5,6 +5,20 @@
     <title>NTS – Mini App</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+
+    <!-- Warpcast Embed Meta -->
+    <meta name="fc:frame" content='{
+      "version": "vNext",
+      "imageUrl": "https://nts-sigma.vercel.app/image.png",
+      "button": {
+        "title": "Open Full App",
+        "action": {
+          "type": "link",
+          "url": "https://nts-sigma.vercel.app"
+        }
+      }
+    }' />
+    
     <style>
       body {
         font-family: 'Press Start 2P', monospace;
@@ -50,6 +64,12 @@
         transform: translate(2px, 2px);
       }
     </style>
+
+    <script type="module">
+      import sdk from "https://esm.sh/@farcaster/frame-sdk";
+
+      sdk.actions.ready();
+    </script>
   </head>
   <body>
     <h1>NTS – Mini App</h1>
