@@ -9,7 +9,7 @@
     <!-- Warpcast Embed Meta -->
     <meta name="fc:frame" content='{
       "version": "vNext",
-      "imageUrl": "https://nts-sigma.vercel.app/image.png",
+      "imageUrl": "https://nts-sigma.vercel.app/Overgas.png",
       "button": {
         "title": "Open Full App",
         "action": {
@@ -18,62 +18,108 @@
         }
       }
     }' />
-    
+
     <style>
       body {
         font-family: 'Press Start 2P', monospace;
         background: #0e0e1c;
         color: #ffffff;
-        text-align: center;
-        padding: 40px 20px;
         margin: 0;
+        padding: 20px;
+      }
+
+      .app-container {
+        max-width: 900px;
+        margin: 0 auto;
+        border: 4px solid #68d3fc;
+        border-radius: 12px;
+        padding: 20px;
+        background-color: rgba(20, 26, 36, 0.95);
+        box-shadow: 0 0 20px #68d3fc;
+      }
+
+      .pixel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #202840;
+        padding: 10px 20px;
+        border-bottom: 2px solid #68d3fc;
+        font-size: 10px;
+      }
+
+      .user-box {
         display: flex;
         flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
+        gap: 4px;
       }
 
-      h1 {
-        font-size: 14px;
-        margin-bottom: 16px;
-      }
-
-      p {
-        font-size: 10px;
-        margin-bottom: 20px;
-        line-height: 1.4;
-      }
-
-      .btn {
+      .pixel-button {
         background-color: #68d3fc;
-        padding: 10px 14px;
-        color: #000;
+        border: 2px solid #111;
+        padding: 6px 12px;
         font-size: 10px;
         font-family: 'Press Start 2P', monospace;
+        cursor: pointer;
         text-transform: uppercase;
-        text-decoration: none;
-        border: 2px solid #111;
-        display: inline-block;
+        color: #000;
         box-shadow: 2px 2px 0 #111;
-        transition: all 0.15s ease-in-out;
+        transition: all 0.1s ease-in-out;
+        margin: 2px;
       }
 
-      .btn:hover {
-        box-shadow: none;
-        transform: translate(2px, 2px);
+      .tab-nav {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 6px;
+        margin: 16px 0;
+      }
+
+      .tab-content {
+        background-color: #111a26;
+        border: 1px dashed #68d3fc;
+        padding: 12px;
+        border-radius: 6px;
+        text-align: center;
+        font-size: 10px;
       }
     </style>
 
     <script type="module">
       import sdk from "https://esm.sh/@farcaster/frame-sdk";
 
-      sdk.actions.ready();
+      const context = await sdk.context;
+
+      window.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("fid").textContent = `FID: ${context.user.fid}`;
+        document.getElementById("username").textContent = `Username: ${context.user.username}`;
+        sdk.actions.ready();
+      });
     </script>
   </head>
   <body>
-    <h1>NTS – Mini App</h1>
-    <p>This app includes wallet and identity features.<br />Tap below to launch the full version.</p>
-    <a class="btn" href="https://nts-sigma.vercel.app" target="_blank">Open Full App</a>
+    <div class="app-container">
+      <div class="pixel-header">
+        <div class="user-box">
+          <span id="fid">FID: ...</span>
+          <span id="username">Username: ...</span>
+        </div>
+        <button class="pixel-button" disabled>Connect Wallet</button>
+      </div>
+
+      <div class="tab-nav">
+        <button class="pixel-button">Stats</button>
+        <button class="pixel-button">Boss Area</button>
+        <button class="pixel-button">Leaderboard</button>
+        <button class="pixel-button">Rewards</button>
+      </div>
+
+      <div class="tab-content">
+        <p>Welcome to NTS Mini App Preview!</p>
+        <p>This preview shows your FID and Username.</p>
+        <p>Wallet connect and actions require full app.</p>
+      </div>
+    </div>
   </body>
 </html>
