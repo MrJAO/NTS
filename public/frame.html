@@ -89,14 +89,12 @@
     <script type="module">
       import sdk from "https://esm.sh/@farcaster/frame-sdk";
 
-      const context = await sdk.context;
-
       window.addEventListener("DOMContentLoaded", async () => {
         const context = await sdk.context;
         document.getElementById("fid").textContent = `FID: ${context.user.fid}`;
         document.getElementById("username").textContent = `Username: ${context.user.username}`;
         sdk.actions.ready();
-         });
+      });
     </script>
   </head>
   <body>
@@ -117,9 +115,8 @@
       </div>
 
       <div class="tab-content">
-        <p>Welcome to NTS Mini App Preview!</p>
-        <p>This preview shows your FID and Username.</p>
-        <p>Wallet connect and actions require full app.</p>
+        <p>Welcome to NTS on Monad Testnet!</p>
+        <p>This Mini App shows your Farcaster ID, Username, and Wallet status.</p>
       </div>
     </div>
   </body>
