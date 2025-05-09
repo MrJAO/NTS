@@ -3,7 +3,7 @@ import {
   useAccount,
   useConnect,
   useDisconnect,
-  WagmiConfig,
+  WagmiProvider,
   createConfig,
   http,
 } from 'wagmi';
@@ -42,13 +42,17 @@ const monad = {
 };
 
 const config = createConfig({
-  connectors: [farcasterFrame(), injected()],
+  connectors: [
+    farcasterFrame(),
+    injected({
+      shimDisconnect: true,
+    }),
+  ],
   chains: [monad],
   transports: {
     [monad.id]: http('https://testnet-rpc.monad.xyz'),
   },
 });
-
 
 const queryClient = new QueryClient();
 
@@ -71,11 +75,16 @@ function NTSApp() {
   }, []);
 
   const handleConnect = () => {
-    const connector = connectors.find(c => c.ready);
-    if (connector) {
-      connect({ connector });
+    // Prefer injected in browser, fallback to farcasterFrame if inside Warpcast
+    const injectedConnector = connectors.find(c => c.id === 'injected');
+    const farcasterConnector = connectors.find(c => c.id === 'farcaster');
+
+    if (injectedConnector && typeof window !== 'undefined' && window.ethereum) {
+      connect({ connector: injectedConnector });
+    } else if (farcasterConnector) {
+      connect({ connector: farcasterConnector });
     } else {
-      alert('No wallet connector available');
+      alert('No supported wallet connector available');
     }
   };
 
@@ -148,9 +157,9 @@ function NTSApp() {
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <WagmiConfig config={config}>
+      <WagmiProvider config={config}>
         <NTSApp />
-      </WagmiConfig>
+      </WagmiProvider>
     </QueryClientProvider>
   );
 }
