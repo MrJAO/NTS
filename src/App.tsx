@@ -13,6 +13,7 @@ import { farcasterFrame } from '@farcaster/frame-wagmi-connector';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import StatsTab from './features/StatsTab';
 import BossAreaTab from './features/BossAreaTab';
+import './main.css';
 
 // Monad Testnet chain config
 const monad = {
