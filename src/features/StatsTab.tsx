@@ -187,16 +187,6 @@ const fetchStats = async () => {
   <li>Cast: 20 dmg/post (max 10/day), +1 per like/comment/quote</li>
 </ul>
 
-<h3 className="mini-note" style={{ marginTop: "20px", fontSize: "13px" }}>
-  Damage Multiplier:
-</h3>
-<ul className="mini-note" style={{ paddingLeft: "20px", textAlign: "left" }}>
-  <li>TX Count: x0.2 → x1.2 scaling</li>
-  <li>Farcaster Followers: x0.2 → x1.2 scaling</li>
-  <li>NFT Holdings: x0.5 per featured NFT</li>
-</ul>
-
-
 <h2 className="mini-note" style={{ marginTop: "25px", fontSize: "14px" }}>
   In-game Information
 </h2>
@@ -236,7 +226,7 @@ const fetchStats = async () => {
   <li>41-99 = x0.8 multiplier to boss damage</li>
   <li>100+ = x1.2 multiplier to boss damage</li>    
   <li>---</li>
-  <li>NFT Holdings: x0.5 multiplier to boss damage per featured NFT you're holdings</li>
+  <li>NFT Holdings: x0.5 multiplier to boss damage per featured NFT you're holding</li>
 </ul>
 
 <ul className="mini-note" style={{ marginTop: "20px", paddingLeft: "20px", textAlign: "left" }}>
