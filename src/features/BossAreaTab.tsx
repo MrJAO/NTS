@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useAccount, useContractRead } from "wagmi";
+import { useAccount, useContractRead, useWriteContract } from "wagmi"; // ✅ added useWriteContract
 import roastLines from "../constants/roastLines";
 import damageGameArtifact from "../../abis/DamageGame.json";
 
@@ -8,6 +8,7 @@ const SPAWN_INTERVAL = 12 * 60 * 60; // 12 hours
 
 export default function BossAreaTab() {
   const { address } = useAccount();
+  const { writeContractAsync } = useWriteContract(); // ✅ added hook
   const [activeBoss] = useState("Overgas");
   const [activeTab, setActiveTab] = useState<'tx' | 'stake' | 'create' | 'nft' | 'cast'>('tx');
   const [randomRoast, setRandomRoast] = useState(() => roastLines[Math.floor(Math.random() * roastLines.length)]);
@@ -63,9 +64,12 @@ export default function BossAreaTab() {
   const handleSpawnBoss = async () => {
     try {
       setSpawnLoading(true);
-      const res = await fetch("/api/spawn", { method: "POST" });
-      const result = await res.json();
-      alert(result.message || "Boss spawned!");
+      await writeContractAsync({
+        address: DAMAGE_GAME_ADDRESS,
+        abi: damageGameArtifact,
+        functionName: "spawnBoss",
+      });
+      alert("✅ Boss spawned!");
     } catch (err) {
       alert("❌ Failed to spawn boss");
     } finally {
