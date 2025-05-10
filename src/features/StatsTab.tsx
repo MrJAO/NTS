@@ -156,6 +156,7 @@ export default function StatsTab() {
   <li>Create Token: 20 dmg (weekly), +5 per buyer</li>
   <li>Create NFT: 20 dmg (weekly), +5 per buyer</li>
   <li>Cast: 20 dmg/post (max 10/day), +1 per like/comment/quote</li>
+  <li>Note: A hidden random +damage will automatically applied even on transaction without multipliers</li>
 </ul>
 
 <h2 className="mini-note" style={{ marginTop: "25px", fontSize: "14px" }}>
