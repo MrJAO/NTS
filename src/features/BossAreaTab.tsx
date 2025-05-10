@@ -3,9 +3,12 @@ import { useAccount, useContractRead, useWriteContract } from "wagmi";
 import roastLines from "../constants/roastLines";
 import damageGameArtifact from "../../abis/DamageGame.json";
 
-const DAMAGE_GAME_ADDRESS = "0x21F6a95B3895E4028D688667D891F28EC2eab4b8";
+const DAMAGE_GAME_ADDRESS = "0x5947000362290c7eC4C96752db29C01336F9b764";
 const SPAWN_INTERVAL = 12 * 60 * 60;
 const bossList = ["Fudster", "Jeetar", "Flyperhands", "Overgas", "Dr.Dumps", "Mr.Insidor"];
+const ALCHEMY_URL = `https://monad-testnet.g.alchemy.com/v2/${import.meta.env.VITE_ALCHEMY_API_KEY}`;
+const NEYNAR_KEY = import.meta.env.VITE_NEYNAR_API_KEY;
+
 const FEATURED_NFTS = [
   "0xa980f072bc06d67faec2b03a8ada0d6c9d0da9f8",
   "0xff59f1e14c4f5522158a0cf029f94475ba469458",
@@ -55,8 +58,14 @@ export default function BossAreaTab() {
   const [timer, setTimer] = useState("");
   const [canSpawn, setCanSpawn] = useState(false);
   const [spawnLoading, setSpawnLoading] = useState(false);
-  const [multiplier, setMultiplier] = useState<string | null>(null);
-  const [multiplierLoading, setMultiplierLoading] = useState(false);
+  const [txHashInput, setTxHashInput] = useState("");
+  const [txCount, setTxCount] = useState(0);
+  const [nftCount, setNftCount] = useState(0);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [localMultiplier, setLocalMultiplier] = useState<number | null>(null);
+  const [showSubmit, setShowSubmit] = useState(false);
+  const [loadingMultiplier, setLoadingMultiplier] = useState(false);
+
 
   const { data: bossHealth } = useContractRead({
     address: DAMAGE_GAME_ADDRESS,
@@ -103,68 +112,22 @@ export default function BossAreaTab() {
     return () => clearInterval(interval);
   }, [lastSpawn]);
 
-  const fetchMultiplier = async () => {
-    if (!address) return;
-    setMultiplierLoading(true);
-
-    try {
-      // TX count
-      const txRes = await fetch(`https://monad-testnet.g.alchemy.com/v2/${import.meta.env.VITE_ALCHEMY_API_KEY}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          id: 1,
-          method: "eth_getTransactionCount",
-          params: [address, "latest"]
-        })
-      });
-      const txJson = await txRes.json();
-      const txCount = parseInt(txJson?.result || "0x0", 16);
-      let txMult = 0;
-      if (txCount >= 1001) txMult = 1.2;
-      else if (txCount >= 801) txMult = 0.8;
-      else if (txCount >= 501) txMult = 0.6;
-      else if (txCount >= 201) txMult = 0.4;
-      else if (txCount >= 1) txMult = 0.2;
-
-      // NFT multiplier
-      let nftHeld = 0;
-      for (const contract of FEATURED_NFTS) {
-        const res = await fetch(
-          `https://monad-testnet.g.alchemy.com/v2/${import.meta.env.VITE_ALCHEMY_API_KEY}/getNFTs?owner=${address}&contractAddresses[]=${contract}`
-        );
-        const json = await res.json();
-        if (json?.ownedNfts?.length > 0) nftHeld++;
-      }
-      const nftMult = nftHeld * 0.5;
-
-      // Follower count
-      let followMult = 0;
-      try {
-        const followRes = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk-by-address?addresses=${address}`, {
-          headers: {
-            accept: "application/json",
-            api_key: import.meta.env.VITE_NEYNAR_API_KEY
-          }
-        });
-        const followJson = await followRes.json();
-        const followers = followJson?.users?.[0]?.follower_count || 0;
-        if (followers >= 100) followMult = 1.2;
-        else if (followers >= 41) followMult = 0.8;
-        else if (followers >= 21) followMult = 0.6;
-        else if (followers >= 11) followMult = 0.4;
-        else if (followers >= 1) followMult = 0.2;
-      } catch {}
-
-      const total = txMult + nftMult + followMult;
-      setMultiplier(total.toFixed(2));
-    } catch (err) {
-      console.error("Multiplier fetch failed", err);
-    }
-
-    setMultiplierLoading(false);
-  };
+const handleSubmitTxHash = async () => {
+  if (!address || !txHashInput) return;
+  try {
+    const hashBytes = `0x${txHashInput.replace(/^0x/, "")}`;
+await writeContractAsync({
+  address: DAMAGE_GAME_ADDRESS,
+  abi: damageGameArtifact,
+  functionName: "submitTxHash",
+  args: [hashBytes]
+});
+    alert("✅ Damage submitted to boss!");
+  } catch (err) {
+    console.error("❌ TX submission failed:", err);
+    alert("❌ Failed to submit TX hash");
+  }
+};
 
   const handleSpawnBoss = async () => {
     try {
@@ -189,6 +152,94 @@ export default function BossAreaTab() {
     }
   };
 
+const refreshMultiplier = async () => {
+  if (!address) return;
+  setLoadingMultiplier(true);
+  try {
+    let txDecimal = 0;
+    let followers = 0;
+    let nfts = 0;
+
+    // TX Count
+    const txRes = await fetch(`${ALCHEMY_URL}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "eth_getTransactionCount",
+        params: [address, "latest"]
+      })
+    });
+    const txJson = await txRes.json();
+    txDecimal = parseInt(txJson?.result || "0x0", 16);
+    setTxCount(txDecimal);
+
+    // NFT Count
+for (const contract of FEATURED_NFTS) {
+  try {
+    const res = await fetch(`${ALCHEMY_URL}/getNFTs?owner=${address}&contractAddresses[]=${contract}`);
+    if (!res.ok) {
+      console.warn(`⚠️ Failed to fetch NFTs for: ${contract} | Status: ${res.status}`);
+      continue;
+    }
+    const json = await res.json();
+    if (json?.ownedNfts?.length > 0) nfts++;
+  } catch (err) {
+    console.warn(`❌ Error fetching NFTs for: ${contract}`, err);
+  }
+}
+setNftCount(nfts);
+
+    // Follower Count
+    const farcasterRes = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk-by-address?addresses=${address}`, {
+      headers: { accept: "application/json", api_key: NEYNAR_KEY }
+    });
+    const farcasterJson = await farcasterRes.json();
+    followers = farcasterJson?.users?.[0]?.follower_count || 0;
+    setFollowerCount(followers);
+
+    // Calculate multiplier
+    let txMult = 0, nftMult = nfts * 0.5, followMult = 0;
+    if (txDecimal >= 1001) txMult = 1.2;
+    else if (txDecimal >= 801) txMult = 0.8;
+    else if (txDecimal >= 501) txMult = 0.6;
+    else if (txDecimal >= 201) txMult = 0.4;
+    else if (txDecimal >= 1)   txMult = 0.2;
+
+    if (followers >= 100) followMult = 1.2;
+    else if (followers >= 41) followMult = 0.8;
+    else if (followers >= 21) followMult = 0.6;
+    else if (followers >= 11) followMult = 0.4;
+    else if (followers >= 1)  followMult = 0.2;
+
+    const totalMult = txMult + nftMult + followMult;
+    setLocalMultiplier(Number(totalMult.toFixed(2)));
+    setShowSubmit(true);
+  } catch (err) {
+    console.error("Failed to refresh multiplier:", err);
+    alert("❌ Refresh failed.");
+  } finally {
+    setLoadingMultiplier(false);
+  }
+};
+
+const submitMetadata = async () => {
+  try {
+await writeContractAsync({
+  address: DAMAGE_GAME_ADDRESS,
+  abi: damageGameArtifact,
+  functionName: "setUserMetadata",
+  args: [txCount, followerCount]
+});
+    alert("✅ Metadata submitted on-chain.");
+    setShowSubmit(false);
+  } catch (err) {
+    console.error("❌ Metadata submission failed:", err);
+    alert("❌ Failed to submit metadata.");
+  }
+};
+
   const getBossGif = (bossName: string) => {
     const gifMap: Record<string, string> = {
       "Fudster": "/Fudster.gif",
@@ -206,8 +257,16 @@ export default function BossAreaTab() {
       case 'tx':
         return (
           <div className="tab-section">
-            <input type="text" placeholder="Enter TX hash" className="input-box" />
-            <button className="pixel-button">Submit Hash</button>
+            <input
+              type="text"
+              placeholder="Enter TX hash"
+              className="input-box"
+              value={txHashInput}
+              onChange={(e) => setTxHashInput(e.target.value)}
+            />
+            <button className="pixel-button" onClick={handleSubmitTxHash}>
+              Submit Hash
+            </button>
           </div>
         );
       case 'stake':
@@ -277,6 +336,9 @@ export default function BossAreaTab() {
       <div className="timer">Next Boss spawning in: {timer}</div>
 
       <div style={{ margin: "10px 0", textAlign: "center" }}>
+        <p className="mini-note" style={{ marginTop: "6px", fontSize: "9px", color: "#ff6b6b" }}>
+          ⚠️ Don't use Phantom Wallet to spawn boss 
+        </p>
         <button
           className="pixel-button"
           disabled={!address || !canSpawn || spawnLoading}
@@ -285,23 +347,36 @@ export default function BossAreaTab() {
         >
           {spawnLoading ? "Spawning..." : "Spawn Boss"}
         </button>
-        <p className="mini-note" style={{ marginTop: "6px", fontSize: "11px", color: "#ff6b6b" }}>
-          ⚠️ Don't use Phantom Wallet to spawn boss 
-        </p>
       </div>
 
-      <div className="multiplier" style={{ textAlign: "center", marginTop: "8px" }}>
-        {multiplier !== null ? (
-          <>Your Damage Multiplier: x{multiplier}</>
-        ) : multiplierLoading ? (
-          <>Refreshing Multiplier...</>
-        ) : (
-          <button className="pixel-button" onClick={fetchMultiplier}>Refresh Damage Multipliers</button>
-        )}
-        <p className="mini-note" style={{ marginTop: "6px", fontSize: "11px", color: "#90ee90" }}>
-          Click refresh once before dealing damage for extra 💥 
+<div className="multiplier" style={{ textAlign: "center", marginTop: "8px" }}>
+  {localMultiplier !== null ? (
+    <>
+      <p className="mini-note">TX Count: {txCount}</p>
+      <p className="mini-note">NFT Holdings: {nftCount}</p>
+      <p className="mini-note">Followers: {followerCount}</p>
+      <p className="mini-note" style={{ marginTop: "8px" }}>
+        Total Damage Multiplier: x{localMultiplier}
+      </p>
+    </>
+  ) : (
+        <p className="mini-note" style={{ marginTop: "6px", fontSize: "9px", color: "#90ee90" }}>
+          Refresh your damage multiplier to deal more 💥 to the boss  
         </p>
-      </div>
+  )}
+
+<div style={{ marginTop: "8px" }}>
+  {!showSubmit ? (
+    <button className="pixel-button" onClick={refreshMultiplier} disabled={loadingMultiplier}>
+      {loadingMultiplier ? "Refreshing data..." : "Refresh Multiplier"}
+    </button>
+  ) : (
+    <button className="pixel-button" onClick={submitMetadata}>
+      Submit Onchain Data
+    </button>
+  )}
+</div>
+</div>
 
       <div className="boss-buttons">
         <button className="pixel-button" onClick={() => setActiveTab('tx')}>TX Hash</button>

@@ -3,9 +3,9 @@ import { useAccount } from "wagmi";
 import { JsonRpcProvider, formatEther } from "ethers";
 
 const ALCHEMY_KEY = import.meta.env.VITE_ALCHEMY_API_KEY;
+const NEYNAR_KEY = import.meta.env.VITE_NEYNAR_API_KEY;
 const ALCHEMY_URL = `https://monad-testnet.g.alchemy.com/v2/${ALCHEMY_KEY}`;
 
-// flatten featured NFT addresses from Featured NFT.txt
 const FEATURED_NFTS = [
   "0xa980f072bc06d67faec2b03a8ada0d6c9d0da9f8",
   "0xff59f1e14c4f5522158a0cf029f94475ba469458",
@@ -50,96 +50,67 @@ export default function StatsTab() {
   const [nftCount, setNftCount] = useState("-");
   const [damage, setDamage] = useState("-");
   const [multiplier, setMultiplier] = useState("-");
-  const [loading, setLoading] = useState(false);
   const [followerCount, setFollowerCount] = useState("-");
+  const [loading, setLoading] = useState(false);
 
+  const fetchStats = async () => {
+    if (!address) return;
+    setLoading(true);
+    try {
+      const provider = new JsonRpcProvider("https://testnet-rpc.monad.xyz");
+      const balance = await provider.getBalance(address);
+      setMon(formatEther(balance));
 
+      const txRes = await fetch(`${ALCHEMY_URL}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "eth_getTransactionCount",
+          params: [address, "latest"]
+        })
+      });
+      const txJson = await txRes.json();
+      const txDecimal = parseInt(txJson?.result || "0x0", 16);
+      setTxCount(txDecimal.toString());
 
-const fetchStats = async () => {
-  if (!address) return;
-  setLoading(true);
-
-  try {
-    // MON Balance
-    const provider = new JsonRpcProvider("https://testnet-rpc.monad.xyz");
-    const balance = await provider.getBalance(address);
-    setMon(formatEther(balance));
-
-    // TX Count
-    const txRes: Response = await fetch(`${ALCHEMY_URL}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 1,
-        method: "eth_getTransactionCount",
-        params: [address, "latest"]
-      })
-    });
-    const txJson: any = await txRes.json();
-    const txCountHex = txJson?.result || "0x0";
-    const txCountDecimal = parseInt(txCountHex, 16);
-    setTxCount(txCountDecimal.toString());
-
-    // TX Multiplier
-    let txMult = 0;
-    if (txCountDecimal >= 1001) txMult = 1.2;
-    else if (txCountDecimal >= 801) txMult = 0.8;
-    else if (txCountDecimal >= 501) txMult = 0.6;
-    else if (txCountDecimal >= 201) txMult = 0.4;
-    else if (txCountDecimal >= 1)   txMult = 0.2;
-
-    // NFT Count with pagination
-    let nftHeld = 0;
-    for (const contractAddress of FEATURED_NFTS) {
-      let owned = false;
-      let nftPageKey: string | undefined = undefined;
-
-      do {
-        const res: Response = await fetch(
-          `${ALCHEMY_URL}/getNFTs?owner=${address}&contractAddresses[]=${contractAddress}${nftPageKey ? `&pageKey=${nftPageKey}` : ""}`
-        );
-        const json: any = await res.json();
-        const ownedNfts = json?.ownedNfts || [];
-        if (ownedNfts.length > 0) owned = true;
-        nftPageKey = json?.pageKey;
-      } while (nftPageKey);
-
-      if (owned) nftHeld++;
-    }
-    setNftCount(nftHeld.toString());
-    const nftMult = 0.5 * nftHeld;
-
-    // Farcaster Followers (via Neynar)
-    const farcasterRes = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk-by-address?addresses=${address}`, {
-      headers: {
-        "accept": "application/json",
-        "api_key": import.meta.env.VITE_NEYNAR_API_KEY
+      let nftHeld = 0;
+      for (const contract of FEATURED_NFTS) {
+        const res = await fetch(`${ALCHEMY_URL}/getNFTs?owner=${address}&contractAddresses[]=${contract}`);
+        const json = await res.json();
+        if (json?.ownedNfts?.length > 0) nftHeld++;
       }
-    });
-    const farcasterJson = await farcasterRes.json();
-    const followers = farcasterJson?.users?.[0]?.follower_count || 0;
-    setFollowerCount(followers.toString());
+      setNftCount(nftHeld.toString());
 
-    let followMult = 0;
-    if (followers >= 100) followMult = 1.2;
-    else if (followers >= 41) followMult = 0.8;
-    else if (followers >= 21) followMult = 0.6;
-    else if (followers >= 11) followMult = 0.4;
-    else if (followers >= 1)  followMult = 0.2;
+      const farcasterRes = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk-by-address?addresses=${address}`, {
+        headers: { accept: "application/json", api_key: NEYNAR_KEY }
+      });
+      const farcasterJson = await farcasterRes.json();
+      const followers = farcasterJson?.users?.[0]?.follower_count || 0;
+      setFollowerCount(followers.toString());
 
-    // Final Multiplier (additive)
-    const finalMult = txMult + nftMult + followMult;
-    setMultiplier("x" + finalMult.toFixed(2));
+      let txMult = 0, nftMult = nftHeld * 0.5, followMult = 0;
+      if (txDecimal >= 1001) txMult = 1.2;
+      else if (txDecimal >= 801) txMult = 0.8;
+      else if (txDecimal >= 501) txMult = 0.6;
+      else if (txDecimal >= 201) txMult = 0.4;
+      else if (txDecimal >= 1)   txMult = 0.2;
 
-    // Optional: you can set total damage if you still want to fetch from contract
-    setDamage("0"); // or leave it as "-"
-  } catch (err) {
-    console.error("Error fetching stats:", err);
-  }
+      if (followers >= 100) followMult = 1.2;
+      else if (followers >= 41) followMult = 0.8;
+      else if (followers >= 21) followMult = 0.6;
+      else if (followers >= 11) followMult = 0.4;
+      else if (followers >= 1)  followMult = 0.2;
 
-  setLoading(false);
-};
+      const finalMult = txMult + nftMult + followMult;
+      setMultiplier("x" + finalMult.toFixed(2));
+      setDamage("0");
+    } catch (err) {
+      console.error("Error fetching stats:", err);
+    }
+    setLoading(false);
+  };
 
   return (
     <div className="tab-content">
