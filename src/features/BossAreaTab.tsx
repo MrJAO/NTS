@@ -47,7 +47,9 @@ export default function BossAreaTab() {
   const { address } = useAccount();
   const { writeContractAsync } = useWriteContract();
 
-  const [activeBoss, setActiveBoss] = useState(() => bossList[Math.floor(Math.random() * bossList.length)]);
+  const [activeBoss, setActiveBoss] = useState<string | null>(() => {
+    return localStorage.getItem("activeBoss") || "Overgas";
+  });
   const [activeTab, setActiveTab] = useState<'tx' | 'stake' | 'create' | 'nft' | 'cast'>('tx');
   const [randomRoast, setRandomRoast] = useState(() => roastLines[Math.floor(Math.random() * roastLines.length)]);
   const [timer, setTimer] = useState("");
@@ -167,15 +169,21 @@ export default function BossAreaTab() {
   const handleSpawnBoss = async () => {
     try {
       setSpawnLoading(true);
+
       await writeContractAsync({
         address: DAMAGE_GAME_ADDRESS,
         abi: damageGameArtifact,
         functionName: "spawnBoss",
       });
-      setActiveBoss(bossList[Math.floor(Math.random() * bossList.length)]);
-      alert("✅ Boss spawned!");
+
+      const nextBoss = bossList[Math.floor(Math.random() * bossList.length)];
+      setActiveBoss(nextBoss);
+      localStorage.setItem("activeBoss", nextBoss);
+
+      alert(`✅ ${nextBoss} has spawned!`);
     } catch (err) {
       alert("❌ Failed to spawn boss");
+      console.error("spawnBoss error:", err);
     } finally {
       setSpawnLoading(false);
     }
@@ -247,7 +255,7 @@ export default function BossAreaTab() {
   return (
     <div className="tab-content">
       <h2 className="mini-note" style={{ fontSize: "14px", textAlign: "center", marginBottom: "10px" }}>
-        {activeBoss}
+        {activeBoss ?? "🔥 Unknown Boss"}
       </h2>
 
       <div className="health-bar-container">
@@ -259,7 +267,7 @@ export default function BossAreaTab() {
       </p>
 
       <div style={{ textAlign: "center", margin: "20px 0" }}>
-        <img src={getBossGif(activeBoss)} alt="Boss GIF" className="boss-gif" />
+        <img src={getBossGif(activeBoss || "Overgas")} alt="Boss GIF" className="boss-gif" />
       </div>
 
       <div className="roast-box" style={{ fontSize: "12px" }}>
