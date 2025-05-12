@@ -1,7 +1,8 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import crypto from 'crypto';
 import { ethers } from 'ethers';
-import damageGameAbi from './DamageGame.json' assert { type: 'json' }; // drop ABI here
+import damageGameAbi from './DamageGame.json' assert { type: 'json' };
 
 dotenv.config();
 
@@ -12,7 +13,21 @@ const provider = new ethers.JsonRpcProvider(process.env.ALCHEMY_URL);
 const wallet = new ethers.Wallet(process.env.BOT_PRIVATE_KEY, provider);
 const contract = new ethers.Contract(process.env.CONTRACT_ADDRESS, damageGameAbi, wallet);
 
+// 🔒 Verify Neynar webhook signature
+function isValidSignature(req) {
+  const secret = process.env.WEBHOOK_SECRET;
+  const signature = req.headers['x-neynar-signature'];
+  const rawBody = JSON.stringify(req.body);
+  const hash = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
+  return signature === hash;
+}
+
 app.post('/api/neynar-cast', async (req, res) => {
+  if (!isValidSignature(req)) {
+    console.warn("❌ Invalid webhook signature");
+    return res.sendStatus(401);
+  }
+
   const cast = req.body.data;
   const ethAddress = cast?.author?.verified_addresses?.eth_addresses?.[0];
   const castHash = cast?.hash;
