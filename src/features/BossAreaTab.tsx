@@ -3,6 +3,16 @@ import { useAccount, useContractRead, useWriteContract } from "wagmi";
 import roastLines from "../constants/roastLines";
 import damageGameArtifact from "../../abis/DamageGame.json";
 
+type UserStruct = [
+  totalDamage: bigint,
+  accumulatedDamage: bigint,
+  lastStakeTime: bigint,
+  lastTokenCreate: bigint,
+  lastNFTCreate: bigint,
+  txCount: bigint,
+  followerCount: bigint
+];
+
 const DAMAGE_GAME_ADDRESS = "0xd57C07e3CE3a90c300fa0151eF98EBe387F64BdF";
 const SPAWN_INTERVAL = 12 * 60 * 60;
 const bossList = ["Fudster", "Jeetar", "Flyperhands", "Overgas", "Dr.Dumps", "Mr.Insidor"];
@@ -67,6 +77,11 @@ export default function BossAreaTab() {
   const [loadingMultiplier, setLoadingMultiplier] = useState(false);
   const [stakeAmt, setStakeAmt] = useState("");
   const [staking, setStaking] = useState(false);
+  const [creatingToken, setCreatingToken] = useState(false);
+  const [tokenName, setTokenName] = useState("");
+  const [tokenTicker, setTokenTicker] = useState("");
+  const [tokenSupply, setTokenSupply] = useState("");
+
 
   const { data: bossHealth } = useContractRead({
     address: DAMAGE_GAME_ADDRESS,
@@ -85,6 +100,19 @@ export default function BossAreaTab() {
     abi: damageGameArtifact,
     functionName: "lastBossSpawn"
   });
+
+  const { data: userData } = useContractRead({
+    address: DAMAGE_GAME_ADDRESS,
+    abi: damageGameArtifact,
+    functionName: "users",
+    args: [address]
+  });
+
+  const lastTokenCreate = userData ? Number((userData as UserStruct)[3]) : 0;
+
+  const hasTokenCooldown =
+  lastTokenCreate > 0 &&
+  Date.now() < lastTokenCreate * 1000 + 7 * 24 * 60 * 60 * 1000;
 
   useEffect(() => {
     const roastInterval = setInterval(() => {
@@ -273,6 +301,30 @@ const handleStake = async () => {
   }
 };
 
+const handleCreateToken = async () => {
+  if (!address) return;
+const now = Date.now();
+if (lastTokenCreate > 0 && now < lastTokenCreate * 1000 + 7 * 24 * 60 * 60 * 1000) {
+  alert("⏳ You can only create a token once every 7 days.");
+  return;
+}
+
+  try {
+    setCreatingToken(true);
+    await writeContractAsync({
+      address: DAMAGE_GAME_ADDRESS,
+      abi: damageGameArtifact,
+      functionName: "createToken"
+    });
+    alert("✅ Token created! Boss took damage.");
+  } catch (err) {
+    console.error("❌ Token creation failed:", err);
+    alert("❌ Failed to create token. Possibly in cooldown.");
+  } finally {
+    setCreatingToken(false);
+  }
+};
+
   const renderTab = () => {
     switch (activeTab) {
       case 'tx':
@@ -300,19 +352,51 @@ case 'stake':
         value={stakeAmt}
         onChange={(e) => setStakeAmt(e.target.value)}
       />
+      <p className="mini-note" style={{ fontSize: "8px", marginTop: "4px", color: "#ffcc00" }}>
+        ⚠️ You can only stake once every 24 hours. "ALERT" will appear on wallet confirmation if it's still in cooldown status and your transaction will fail. Be careful!
+      </p>
       <button className="pixel-button" onClick={handleStake} disabled={staking}>
         {staking ? "Staking..." : "Stake"}
       </button>
     </div>
   );
-      case 'create':
-        return (
-          <div className="tab-section">
-            <input type="text" placeholder="Token Name" className="input-box" />
-            <input type="text" placeholder="Ticker" className="input-box" />
-            <input type="text" placeholder="Supply" className="input-box" />
-            <button className="pixel-button">Create Token</button>
-          </div>
+case 'create':
+  return (
+    <div className="tab-section">
+      <input
+        type="text"
+        placeholder="Token Name"
+        className="input-box"
+        value={tokenName}
+        onChange={(e) => setTokenName(e.target.value)}
+      />
+      <input
+        type="text"
+        placeholder="Ticker"
+        className="input-box"
+        value={tokenTicker}
+        onChange={(e) => setTokenTicker(e.target.value)}
+      />
+      <input
+        type="text"
+        placeholder="Supply"
+        className="input-box"
+        value={tokenSupply}
+        onChange={(e) => setTokenSupply(e.target.value)}
+      />
+      <button
+        className="pixel-button"
+        onClick={handleCreateToken}
+        disabled={creatingToken || hasTokenCooldown}
+      >
+        {creatingToken ? "Creating..." : "Create Token"}
+      </button>
+      <p className="mini-note" style={{ fontSize: "8px", marginTop: "4px", color: "#ffcc00" }}>
+        {hasTokenCooldown
+          ? "⏳ Already created a token this week, Ongoing Cooldown: You can only create a token once every 7 days"
+          : "✅ You can create a token this week and deal extra damage to the boss"}
+      </p>
+    </div>
         );
       case 'nft':
         return (
@@ -342,6 +426,10 @@ case 'stake':
 
   return (
     <div className="tab-content">
+      <p className="mini-note" style={{ textAlign: "center", fontSize: "9px", color: "#ffcc00" }}>
+          ⚠️ Use Metamask or Farcaster Wallets only  
+      </p>
+
       <h2 className="mini-note" style={{ fontSize: "14px", textAlign: "center", marginBottom: "10px" }}>
         {activeBoss ?? "🔥 Unknown Boss"}
       </h2>
@@ -365,9 +453,6 @@ case 'stake':
       <div className="timer">Spawn next Boss in: {timer}</div>
 
       <div style={{ margin: "10px 0", textAlign: "center" }}>
-        <p className="mini-note" style={{ marginTop: "6px", fontSize: "9px", color: "#ff6b6b" }}>
-          ⚠️ Don't use Phantom Wallet to spawn boss 
-        </p>
         <button
           className="pixel-button"
           disabled={!address || !canSpawn || spawnLoading}
