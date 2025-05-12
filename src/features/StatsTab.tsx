@@ -154,24 +154,24 @@ const fetchStats = async () => {
 <ul className="mini-note" style={{ marginTop: "10px", paddingLeft: "20px", textAlign: "left" }}>
   <li><strong>Default Damage Stats</strong></li>
   <li>---</li>  
-  <li>TX Hash: X damage per submitted TX hash (default damage, no cooldown except TX hash can only be submitted once)</li>
+  <li>TX Hash: X damage per submitted TX hash (no cooldown except TX hash can only be submitted once)</li>
   <li>---</li>  
-  <li>Stake: X damage per successful stake (default damage, once every 24hrs)</li>
+  <li>Stake: X damage per successful stake (once every 24hrs)</li>
   <li>---</li>  
-  <li>Create Token: X damage per token creation (default damage, once every 7days)</li>
+  <li>Create Token: X damage per token creation (once every 7days)</li>
   <li>Per unique wallet address bought the token will give +5 damage to the creator (goes to accumulated damage)</li>
   <li>---</li>  
-  <li>Create NFT: X damage per token creation (default damage, once every 7days)</li>
+  <li>Create NFT: X damage per token creation (once every 7days)</li>
   <li>Per unique wallet address bought the NFT will give +5 damage to the creator (goes to accumulated damage)</li>
   <li>---</li>  
-  <li>Cast (post on Farcaster): 20 damage per post (default damage, max 10 posts a day)</li>
+  <li>Cast (post on Farcaster): 20 damage per post (max 10 posts a day)</li>
   <li>Per Post Like: 1 damage each (goes to accumulated damage)</li>
   <li>Per Post Comment: 1 damage each (goes to accumulated damage)</li>
   <li>Per Post Qoutes: 1 damage each (goes to accumulated damage)</li>
 </ul>
 
 <ul className="mini-note" style={{ marginTop: "20px", paddingLeft: "20px", textAlign: "left" }}>
-  <li><strong>Damage Calculation</strong></li>
+  <li><strong>Damage Calculations</strong></li>
   <li>---</li>  
   <li>TX Counts:</li>
   <li>0-200 tx counts = 20 Damage </li>
@@ -189,7 +189,9 @@ const fetchStats = async () => {
   <li>---</li>
   <li>NFT Holdings: 50 damage to boss per featured NFT you're holding</li>
   <li>---</li>
-  <li>x100 multiplier is applied to all attacks 💥</li>
+  <li>Notes 💥</li>
+  <li>Random X multiplier is applied to all attacks</li>
+  <li>Stake, Create Token, and Cast can deal way more damage to bosses</li>
 </ul>
 
 <ul className="mini-note" style={{ marginTop: "20px", paddingLeft: "20px", textAlign: "left" }}>

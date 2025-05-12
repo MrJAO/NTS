@@ -19,6 +19,11 @@ const bossList = ["Fudster", "Jeetar", "Flyperhands", "Overgas", "Dr.Dumps", "Mr
 const ALCHEMY_URL = `https://monad-testnet.g.alchemy.com/v2/${import.meta.env.VITE_ALCHEMY_API_KEY}`;
 const NEYNAR_KEY = import.meta.env.VITE_NEYNAR_API_KEY;
 
+const isWarpcast = () => {
+  const ua = window.navigator.userAgent.toLowerCase();
+  return ua.includes("warpcast");
+};
+
 const FEATURED_NFTS = [
   "0xa980f072bc06d67faec2b03a8ada0d6c9d0da9f8",
   "0xff59f1e14c4f5522158a0cf029f94475ba469458",
@@ -459,16 +464,32 @@ case 'create':
             <button className="pixel-button">Create NFT</button>
           </div>
         );
-      case 'cast':
-        return (
-          <div className="tab-section">
-            <button className="pixel-button">Cast</button>
-            <p className="mini-note">
-              +1 damage per Like, Comment, Quote<br />
-              +5 per buyer (Token/NFT)
-            </p>
-          </div>
-        );
+case 'cast':
+  return (
+    <div className="tab-section">
+      <button
+        className="pixel-button"
+        onClick={() => {
+          const postText = encodeURIComponent(
+            "🔥 I just dealt damage to the boss in NTS! Join the battle: https://nts-sigma.vercel.app/"
+          );
+          if (isWarpcast()) {
+            // In Mini App (Frame)
+            window.location.href = `https://warpcast.com/~/compose?text=${postText}`;
+          } else {
+            // In browser
+            window.open(`https://warpcast.com/~/compose?text=${postText}`, "_blank");
+          }
+        }}
+      >
+        Cast
+      </button>
+      <p className="mini-note">
+        +20 damage per post<br />
+        +1 per Like, Comment, Quote
+      </p>
+    </div>
+  );
     }
   };
 
@@ -519,13 +540,20 @@ case 'create':
   <div style={{ marginTop: "8px" }}>
     {!showSubmit ? (
       <button className="pixel-button" onClick={refreshMultiplier} disabled={loadingMultiplier}>
-        {loadingMultiplier ? "Refreshing data..." : "Refresh Multiplier"}
+        {loadingMultiplier ? "Refreshing data..." : "Refresh Damage"}
       </button>
     ) : (
       <button className="pixel-button" onClick={submitMetadata}>
         Submit Onchain Data
       </button>
     )}
+
+    <p className="mini-note" style={{ textAlign: "center", fontSize: "9px", color: "#ffcc00" }}>
+        ⚠️ For new users, Refresh Damage and submit Onchain Data for your actual damages.
+    </p>
+    <p className="mini-note" style={{ textAlign: "center", fontSize: "9px", color: "#90ee90" }}>
+        📝 For existing users, You can overwrite onchain data if you increase your previous stats.
+    </p>
   </div>
 </div>
 

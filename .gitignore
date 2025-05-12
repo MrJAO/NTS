@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 .env
+bot/.env
+bot/node_modules
+
+cast-backend/.env
 
 # Editor directories and files
 .vscode/*
