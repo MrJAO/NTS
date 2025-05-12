@@ -16,7 +16,7 @@ import BossAreaTab from './features/BossAreaTab';
 import './main.css';
 import AdminTab from './pages/AdminTab';
 
-// Monad Testnet chain config
+// Monad Testnet chain configs
 const monad = {
   id: 10143,
   name: 'Monad Testnet',
