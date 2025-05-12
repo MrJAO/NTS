@@ -13,7 +13,7 @@ type UserStruct = [
   followerCount: bigint
 ];
 
-const DAMAGE_GAME_ADDRESS = "0xd57C07e3CE3a90c300fa0151eF98EBe387F64BdF";
+const DAMAGE_GAME_ADDRESS = "0x3638D6aC0EC8081d6241DF9Dd95Da6c1BcF9d538";
 const SPAWN_INTERVAL = 12 * 60 * 60;
 const bossList = ["Fudster", "Jeetar", "Flyperhands", "Overgas", "Dr.Dumps", "Mr.Insidor"];
 const ALCHEMY_URL = `https://monad-testnet.g.alchemy.com/v2/${import.meta.env.VITE_ALCHEMY_API_KEY}`;
@@ -51,7 +51,7 @@ const FEATURED_NFTS = [
   "0x5af1e57d7d1c8a83d5dd244de71227caa2d69b31",
   "0x2577a6bf5ea12b5e2b53bc7bd3fc93a529434d11",
   "0x2eFe558C1b4636144D32127E9C12E36508350a02",
-  "0x6ed438b2a8eff227e7e54b5324926941b140eea0",
+  // "0x6ed438b2a8eff227e7e54b5324926941b140eea0", removing atm
   "0x800f8cacc990dda9f4b3f1386c84983ffb65ce94",
   "0x209fb14943e9412354e982c4784bf89df760bf8f"
 ];
@@ -70,18 +70,17 @@ export default function BossAreaTab() {
   const [spawnLoading, setSpawnLoading] = useState(false);
   const [txHashInput, setTxHashInput] = useState("");
   const [txCount, setTxCount] = useState(0);
-  const [nftCount, setNftCount] = useState(0);
   const [followerCount, setFollowerCount] = useState(0);
-  const [localMultiplier, setLocalMultiplier] = useState<number | null>(null);
   const [showSubmit, setShowSubmit] = useState(false);
   const [loadingMultiplier, setLoadingMultiplier] = useState(false);
   const [stakeAmt, setStakeAmt] = useState("");
   const [staking, setStaking] = useState(false);
+  const [stakeCooldownText, setStakeCooldownText] = useState("");
   const [creatingToken, setCreatingToken] = useState(false);
   const [tokenName, setTokenName] = useState("");
   const [tokenTicker, setTokenTicker] = useState("");
   const [tokenSupply, setTokenSupply] = useState("");
-
+  const [tokenCooldownText, setTokenCooldownText] = useState("");
 
   const { data: bossHealth } = useContractRead({
     address: DAMAGE_GAME_ADDRESS,
@@ -101,18 +100,27 @@ export default function BossAreaTab() {
     functionName: "lastBossSpawn"
   });
 
-  const { data: userData } = useContractRead({
-    address: DAMAGE_GAME_ADDRESS,
-    abi: damageGameArtifact,
-    functionName: "users",
-    args: [address]
-  });
+const { data: userData } = useContractRead({
+  address: DAMAGE_GAME_ADDRESS,
+  abi: damageGameArtifact,
+  functionName: "users",
+  args: [address]
+});
 
-  const lastTokenCreate = userData ? Number((userData as UserStruct)[3]) : 0;
+const lastTokenCreate = userData ? Number((userData as UserStruct)[3]) : 0;
 
-  const hasTokenCooldown =
+const hasTokenCooldown =
   lastTokenCreate > 0 &&
   Date.now() < lastTokenCreate * 1000 + 7 * 24 * 60 * 60 * 1000;
+
+const userTokenRead = useContractRead({
+  address: DAMAGE_GAME_ADDRESS,
+  abi: damageGameArtifact,
+  functionName: "userToken",
+  args: [address],
+});
+
+const userToken = userTokenRead.data as string | undefined;
 
   useEffect(() => {
     const roastInterval = setInterval(() => {
@@ -140,6 +148,44 @@ export default function BossAreaTab() {
     }, 1000);
     return () => clearInterval(interval);
   }, [lastSpawn]);
+
+useEffect(() => {
+  const interval = setInterval(() => {
+    const lastStake = userData ? Number((userData as UserStruct)[2]) : 0;
+    const endsAt = lastStake * 1000 + 24 * 60 * 60 * 1000;
+    const diff = endsAt - Date.now();
+
+    if (diff <= 0) {
+      setStakeCooldownText("");
+      return;
+    }
+
+    const hours = Math.floor(diff / 3600000);
+    const minutes = Math.floor((diff % 3600000) / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
+
+    setStakeCooldownText(`${hours}h ${minutes}m ${seconds}s`);
+  }, 1000);
+  return () => clearInterval(interval);
+}, [userData]);
+
+  useEffect(() => {
+  const interval = setInterval(() => {
+    if (!hasTokenCooldown) {
+      setTokenCooldownText("");
+      return;
+    }
+    const endsAt = lastTokenCreate * 1000 + 7 * 24 * 60 * 60 * 1000;
+    const diff = endsAt - Date.now();
+
+    const hours = Math.floor(diff / 3600000);
+    const minutes = Math.floor((diff % 3600000) / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
+
+    setTokenCooldownText(`${hours}h ${minutes}m ${seconds}s`);
+  }, 1000);
+  return () => clearInterval(interval);
+}, [lastTokenCreate, hasTokenCooldown]);
 
 const handleSubmitTxHash = async () => {
   if (!address || !txHashInput) return;
@@ -205,45 +251,42 @@ const refreshMultiplier = async () => {
     setTxCount(txDecimal);
 
     // NFT Count
+// NFT Count
+const failedNfts: string[] = [];
 for (const contract of FEATURED_NFTS) {
   try {
     const res = await fetch(`${ALCHEMY_URL}/getNFTs?owner=${address}&contractAddresses[]=${contract}`);
     if (!res.ok) {
       console.warn(`⚠️ Failed to fetch NFTs for: ${contract} | Status: ${res.status}`);
+      failedNfts.push(contract);
       continue;
     }
     const json = await res.json();
-    if (json?.ownedNfts?.length > 0) nfts++;
+    if (json?.ownedNfts?.length > 0) {
+      nfts++;
+    }
   } catch (err) {
     console.warn(`❌ Error fetching NFTs for: ${contract}`, err);
+    failedNfts.push(contract);
   }
 }
-setNftCount(nfts);
+    console.log("✅ Total NFTs found:", nfts);
+    console.log("❌ Unreadable NFT Contracts:", failedNfts);
 
     // Follower Count
-    const farcasterRes = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk-by-address?addresses=${address}`, {
-      headers: { accept: "application/json", api_key: NEYNAR_KEY }
-    });
-    const farcasterJson = await farcasterRes.json();
-    followers = farcasterJson?.users?.[0]?.follower_count || 0;
-    setFollowerCount(followers);
+    try {
+      const farcasterRes = await fetch(
+        `https://api.neynar.com/v2/farcaster/user/bulk-by-address?addresses=${address}`,
+        { headers: { accept: "application/json", api_key: NEYNAR_KEY } }
+      );
+      const farcasterJson = await farcasterRes.json();
+      followers = farcasterJson?.users?.[0]?.follower_count || 0;
+      setFollowerCount(followers);
+    } catch (err) {
+      console.warn("⚠️ Failed to fetch Farcaster followers:", err);
+      followers = 0;
+    }
 
-    // Calculate multiplier
-    let txMult = 0, nftMult = nfts * 0.5, followMult = 0;
-    if (txDecimal >= 1001) txMult = 1.2;
-    else if (txDecimal >= 801) txMult = 0.8;
-    else if (txDecimal >= 501) txMult = 0.6;
-    else if (txDecimal >= 201) txMult = 0.4;
-    else if (txDecimal >= 1)   txMult = 0.2;
-
-    if (followers >= 100) followMult = 1.2;
-    else if (followers >= 41) followMult = 0.8;
-    else if (followers >= 21) followMult = 0.6;
-    else if (followers >= 11) followMult = 0.4;
-    else if (followers >= 1)  followMult = 0.2;
-
-    const totalMult = txMult + nftMult + followMult;
-    setLocalMultiplier(Number(totalMult.toFixed(2)));
     setShowSubmit(true);
   } catch (err) {
     console.error("Failed to refresh multiplier:", err);
@@ -253,14 +296,15 @@ setNftCount(nfts);
   }
 };
 
+// Submit user TX/follower metadata to smart contract
 const submitMetadata = async () => {
   try {
-await writeContractAsync({
-  address: DAMAGE_GAME_ADDRESS,
-  abi: damageGameArtifact,
-  functionName: "setUserMetadata",
-  args: [txCount, followerCount]
-});
+    await writeContractAsync({
+      address: DAMAGE_GAME_ADDRESS,
+      abi: damageGameArtifact,
+      functionName: "setUserMetadata",
+      args: [txCount, followerCount]
+    });
     alert("✅ Metadata submitted on-chain.");
     setShowSubmit(false);
   } catch (err) {
@@ -311,11 +355,12 @@ if (lastTokenCreate > 0 && now < lastTokenCreate * 1000 + 7 * 24 * 60 * 60 * 100
 
   try {
     setCreatingToken(true);
-    await writeContractAsync({
-      address: DAMAGE_GAME_ADDRESS,
-      abi: damageGameArtifact,
-      functionName: "createToken"
-    });
+await writeContractAsync({
+  address: DAMAGE_GAME_ADDRESS,
+  abi: damageGameArtifact,
+  functionName: "createToken",
+  args: [tokenName, tokenTicker, BigInt(Math.floor(Number(tokenSupply)))],
+});
     alert("✅ Token created! Boss took damage.");
   } catch (err) {
     console.error("❌ Token creation failed:", err);
@@ -352,9 +397,11 @@ case 'stake':
         value={stakeAmt}
         onChange={(e) => setStakeAmt(e.target.value)}
       />
-      <p className="mini-note" style={{ fontSize: "8px", marginTop: "4px", color: "#ffcc00" }}>
-        ⚠️ You can only stake once every 24 hours. "ALERT" will appear on wallet confirmation if it's still in cooldown status and your transaction will fail. Be careful!
-      </p>
+<p className="mini-note" style={{ fontSize: "8px", marginTop: "4px", color: "#ffcc00" }}>
+  {stakeCooldownText
+    ? `⏳ Already staked today. Cooldown ends in: ${stakeCooldownText}`
+    : "✅ You can stake now and deal damage to the boss"}
+</p>
       <button className="pixel-button" onClick={handleStake} disabled={staking}>
         {staking ? "Staking..." : "Stake"}
       </button>
@@ -391,11 +438,16 @@ case 'create':
       >
         {creatingToken ? "Creating..." : "Create Token"}
       </button>
-      <p className="mini-note" style={{ fontSize: "8px", marginTop: "4px", color: "#ffcc00" }}>
-        {hasTokenCooldown
-          ? "⏳ Already created a token this week, Ongoing Cooldown: You can only create a token once every 7 days"
-          : "✅ You can create a token this week and deal extra damage to the boss"}
-      </p>
+<p className="mini-note" style={{ fontSize: "8px", marginTop: "4px", color: "#ffcc00" }}>
+  {hasTokenCooldown
+    ? `⏳ Already created a token this week. Cooldown ends in: ${tokenCooldownText}`
+    : "✅ You can create a token this week and deal extra damage to the boss"}
+</p>
+      {userToken && userToken !== "0x0000000000000000000000000000000000000000" && (
+        <p className="mini-note" style={{ fontSize: "10px", marginTop: "6px", color: "#90ee90" }}>
+          ✅ Token created at: {userToken}
+        </p>
+      )}
     </div>
         );
       case 'nft':
@@ -464,32 +516,17 @@ case 'create':
       </div>
 
 <div className="multiplier" style={{ textAlign: "center", marginTop: "8px" }}>
-  {localMultiplier !== null ? (
-    <>
-      <p className="mini-note">TX Count: {txCount}</p>
-      <p className="mini-note">NFT Holdings: {nftCount}</p>
-      <p className="mini-note">Followers: {followerCount}</p>
-      <p className="mini-note" style={{ marginTop: "8px" }}>
-        Total Damage Multiplier: x{localMultiplier}
-      </p>
-    </>
-  ) : (
-        <p className="mini-note" style={{ marginTop: "6px", fontSize: "9px", color: "#90ee90" }}>
-          Refresh your damage multiplier to deal more 💥 to the boss  
-        </p>
-  )}
-
-<div style={{ marginTop: "8px" }}>
-  {!showSubmit ? (
-    <button className="pixel-button" onClick={refreshMultiplier} disabled={loadingMultiplier}>
-      {loadingMultiplier ? "Refreshing data..." : "Refresh Multiplier"}
-    </button>
-  ) : (
-    <button className="pixel-button" onClick={submitMetadata}>
-      Submit Onchain Data
-    </button>
-  )}
-</div>
+  <div style={{ marginTop: "8px" }}>
+    {!showSubmit ? (
+      <button className="pixel-button" onClick={refreshMultiplier} disabled={loadingMultiplier}>
+        {loadingMultiplier ? "Refreshing data..." : "Refresh Multiplier"}
+      </button>
+    ) : (
+      <button className="pixel-button" onClick={submitMetadata}>
+        Submit Onchain Data
+      </button>
+    )}
+  </div>
 </div>
 
       <div className="boss-buttons">
