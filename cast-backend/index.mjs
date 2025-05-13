@@ -4,10 +4,12 @@ import crypto from 'crypto';
 import { ethers } from 'ethers';
 import fetch from 'node-fetch';
 import damageGameAbi from './DamageGame.json' assert { type: 'json' };
+import cors from 'cors';
 
 dotenv.config();
-
+app.use(cors());
 const app = express();
+
 app.use(express.json());
 
 const provider = new ethers.JsonRpcProvider(process.env.ALCHEMY_URL);
