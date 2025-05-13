@@ -64,6 +64,7 @@ app.get('/api/farcaster/sign-in', async (req, res) => {
       }
     });
     const data = await response.json();
+    console.log("🔍 Neynar sign-in response:", data); // add this line
     res.json(data);
   } catch (err) {
     console.error('❌ Error requesting signer_uuid:', err);
