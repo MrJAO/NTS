@@ -81,8 +81,8 @@ const handleSignIn = async () => {
     const initRes = await fetch('https://nts-production.up.railway.app/api/farcaster/sign-in', {
       method: 'POST'
     });
-    const { signer_uuid, message } = await initRes.json();
-    if (!signer_uuid || !message) throw new Error('Missing signer_uuid or message');
+    const { request_fid, message } = await initRes.json();
+    if (!request_fid || !message) throw new Error('Missing request_fid or message');
 
     const encodedMsg = new TextEncoder().encode(message);
     const signed = await window.ethereum.request({
@@ -93,7 +93,7 @@ const handleSignIn = async () => {
     const verifyRes = await fetch('https://nts-production.up.railway.app/api/farcaster/verify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ signer_uuid, signed_message: signed })
+      body: JSON.stringify({ request_fid, signed_message: signed })
     });
 
     const data = await verifyRes.json();

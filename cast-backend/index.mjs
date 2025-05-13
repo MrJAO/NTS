@@ -53,13 +53,12 @@ app.post('/api/neynar-cast', async (req, res) => {
   res.sendStatus(200);
 });
 
-// ✅ Farcaster Sign-in Step 1
+// ✅ Farcaster Sign-in Step 1 — using new Neynar endpoint
 app.post('/api/farcaster/sign-in', async (req, res) => {
   try {
-    console.log("🔍 SIGNER_UUID:", process.env.SIGNER_UUID);
-    console.log("🔍 NEYNAR_KEY:", process.env.NEYNAR_KEY?.slice(0, 5)); // partial key
+    console.log("🔍 NEYNAR_KEY:", process.env.NEYNAR_KEY?.slice(0, 5));
 
-    const response = await fetch('https://api.neynar.com/v2/farcaster/sign-in', {
+    const response = await fetch('https://api.neynar.com/v2/signer/signed-key-requests', {
       method: 'POST',
       headers: {
         'accept': 'application/json',
@@ -67,49 +66,46 @@ app.post('/api/farcaster/sign-in', async (req, res) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        signer_uuid: process.env.SIGNER_UUID,
         domain: 'nts-sigma.vercel.app'
       })
     });
 
-    const raw = await response.text();
-    console.log("📦 Raw Neynar Response:", raw);
+    const data = await response.json();
+    console.log("📦 Sign-In Response:", data);
 
-    let data = {};
-    try {
-      data = JSON.parse(raw);
-    } catch (err) {
-      console.error("❌ Failed to parse JSON:", err);
+    if (!data.message || !data.request_fid) {
+      throw new Error('Missing message or request_fid');
     }
 
-    if (!data.message || !data.signer_uuid) {
-      throw new Error('Missing message or signer_uuid');
-    }
-
-    res.json({ message: data.message, signer_uuid: data.signer_uuid });
+    res.json({ message: data.message, request_fid: data.request_fid });
   } catch (err) {
     console.error('❌ Error initiating Farcaster sign-in:', err);
     res.status(500).json({ error: 'Sign-in initiation failed' });
   }
 });
 
-// ✅ Farcaster Sign-in Step 2
+// ✅ Farcaster Sign-in Step 2 — using new Neynar verify endpoint
 app.post('/api/farcaster/verify', async (req, res) => {
-  const { signer_uuid, signed_message } = req.body;
+  const { request_fid, signed_message } = req.body;
 
   try {
-    const response = await fetch('https://api.neynar.com/v2/farcaster/signed-message', {
+    const response = await fetch('https://api.neynar.com/v2/signer/signed-key-requests/verify', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'accept': 'application/json',
         'api_key': process.env.NEYNAR_KEY
       },
-      body: JSON.stringify({ signer_uuid, signed_message })
+      body: JSON.stringify({ request_fid, signed_message })
     });
 
     const data = await response.json();
-    const { fid, username } = data.result.user;
+    console.log("📦 Verify Response:", data);
+
+    const { fid, username } = data?.user || {};
+    if (!fid || !username) {
+      throw new Error('Missing user info');
+    }
 
     res.json({ fid, username });
   } catch (err) {
