@@ -108,7 +108,7 @@ function NTSApp() {
           <span>👤 Username: {username ?? '—'}</span>
           <div
             className="neynar_signin"
-            data-client_id="YOUR_CLIENT_ID"
+            data-client_id="38f06388-85eb-43d3-a1e3-453c4f04c5be"
             data-success-callback="onSignInSuccess"
             data-theme="dark"
           />
