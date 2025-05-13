@@ -8,7 +8,7 @@ import cors from 'cors';
 
 dotenv.config();
 
-const app = express();      // ✅ declare first
+const app = express();
 app.use(cors({ origin: 'https://nts-sigma.vercel.app' }));
 app.use(express.json());
 
@@ -54,21 +54,30 @@ app.post('/api/neynar-cast', async (req, res) => {
 });
 
 // ✅ Farcaster Sign-in Step 1
-app.get('/api/farcaster/sign-in', async (req, res) => {
+app.post('/api/farcaster/sign-in', async (req, res) => {
   try {
     const response = await fetch('https://api.neynar.com/v2/farcaster/sign-in', {
-      method: 'GET',
+      method: 'POST',
       headers: {
         'accept': 'application/json',
-        'api_key': process.env.NEYNAR_KEY
-      }
+        'api_key': process.env.NEYNAR_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        signer_uuid: process.env.SIGNER_UUID,
+        domain: 'nts-sigma.vercel.app'
+      })
     });
+
     const data = await response.json();
-    console.log("🔍 Neynar sign-in response:", data); // add this line
-    res.json(data);
+    if (!data.message || !data.signer_uuid) {
+      throw new Error('Missing message or signer_uuid');
+    }
+
+    res.json({ message: data.message, signer_uuid: data.signer_uuid });
   } catch (err) {
-    console.error('❌ Error requesting signer_uuid:', err);
-    res.status(500).json({ error: 'Failed to get signer_uuid' });
+    console.error('❌ Error initiating Farcaster sign-in:', err);
+    res.status(500).json({ error: 'Sign-in initiation failed' });
   }
 });
 

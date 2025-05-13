@@ -15,6 +15,7 @@ import StatsTab from './features/StatsTab';
 import BossAreaTab from './features/BossAreaTab';
 import './main.css';
 import AdminTab from './pages/AdminTab';
+import { hexlify } from 'ethers';
 
 const monad = {
   id: 10143,
@@ -75,29 +76,34 @@ function NTSApp() {
     loadContext();
   }, []);
 
-  const handleSignIn = async () => {
-    try {
-      const initRes = await fetch('https://nts-production.up.railway.app/api/farcaster/sign-in');
-      const { signer_uuid } = await initRes.json();
-      if (!signer_uuid) throw new Error('Missing signer_uuid');
+const handleSignIn = async () => {
+  try {
+    const initRes = await fetch('https://nts-production.up.railway.app/api/farcaster/sign-in', {
+      method: 'POST'
+    });
+    const { signer_uuid, message } = await initRes.json();
+    if (!signer_uuid || !message) throw new Error('Missing signer_uuid or message');
 
-      const signed_message = prompt('Paste your signed message here');
-      if (!signed_message) return;
+    const encodedMsg = new TextEncoder().encode(message);
+    const signed = await window.ethereum.request({
+      method: 'personal_sign',
+      params: [hexlify(encodedMsg), address]
+    });
 
-      const verifyRes = await fetch('https://nts-production.up.railway.app/api/farcaster/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ signer_uuid, signed_message })
-      });
+    const verifyRes = await fetch('https://nts-production.up.railway.app/api/farcaster/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ signer_uuid, signed_message: signed })
+    });
 
-      const data = await verifyRes.json();
-      setFid(data.fid);
-      setUsername(data.username);
-    } catch (err) {
-      console.error('❌ Farcaster login failed:', err);
-      alert('Farcaster login failed');
-    }
-  };
+    const data = await verifyRes.json();
+    setFid(data.fid);
+    setUsername(data.username);
+  } catch (err) {
+    console.error('❌ Farcaster login failed:', err);
+    alert('Farcaster login failed');
+  }
+};
 
   const handleConnect = () => {
     const injectedConnector = connectors.find(c => c.id === 'injected');
