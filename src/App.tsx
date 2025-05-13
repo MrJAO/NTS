@@ -77,13 +77,14 @@ function NTSApp() {
 
   const handleSignIn = async () => {
     try {
-      const initRes = await fetch('/api/farcaster/sign-in');
+      const initRes = await fetch('https://nts-production.up.railway.app/api/farcaster/sign-in');
       const { signer_uuid } = await initRes.json();
+      if (!signer_uuid) throw new Error('Missing signer_uuid');
 
       const signed_message = prompt('Paste your signed message here');
       if (!signed_message) return;
 
-      const verifyRes = await fetch('/api/farcaster/verify', {
+      const verifyRes = await fetch('https://nts-production.up.railway.app/api/farcaster/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ signer_uuid, signed_message })
