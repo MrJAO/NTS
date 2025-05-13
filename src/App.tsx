@@ -15,7 +15,12 @@ import StatsTab from './features/StatsTab';
 import BossAreaTab from './features/BossAreaTab';
 import './main.css';
 import AdminTab from './pages/AdminTab';
-import { hexlify } from 'ethers';
+
+declare global {
+  interface Window {
+    onSignInSuccess?: (data: any) => void;
+  }
+}
 
 const monad = {
   id: 10143,
@@ -74,36 +79,13 @@ function NTSApp() {
       }
     };
     loadContext();
+
+    // Register SIWN callback
+    window.onSignInSuccess = (data) => {
+      setFid(data.fid);
+      setUsername(data.user.username);
+    };
   }, []);
-
-const handleSignIn = async () => {
-  try {
-    const initRes = await fetch('https://nts-production.up.railway.app/api/farcaster/sign-in', {
-      method: 'POST'
-    });
-    const { request_fid, message } = await initRes.json();
-    if (!request_fid || !message) throw new Error('Missing request_fid or message');
-
-    const encodedMsg = new TextEncoder().encode(message);
-    const signed = await window.ethereum.request({
-      method: 'personal_sign',
-      params: [hexlify(encodedMsg), address]
-    });
-
-    const verifyRes = await fetch('https://nts-production.up.railway.app/api/farcaster/verify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ request_fid, signed_message: signed })
-    });
-
-    const data = await verifyRes.json();
-    setFid(data.fid);
-    setUsername(data.username);
-  } catch (err) {
-    console.error('❌ Farcaster login failed:', err);
-    alert('Farcaster login failed');
-  }
-};
 
   const handleConnect = () => {
     const injectedConnector = connectors.find(c => c.id === 'injected');
@@ -124,9 +106,13 @@ const handleSignIn = async () => {
         <div className="user-box">
           <span>🪪 FID: {fid ?? '—'}</span>
           <span>👤 Username: {username ?? '—'}</span>
-          <button className="pixel-button" onClick={handleSignIn}>
-            Sign in with Farcaster
-          </button>
+          <div
+            className="neynar_signin"
+            data-client_id="YOUR_CLIENT_ID"
+            data-success-callback="onSignInSuccess"
+            data-theme="dark"
+          />
+          <script src="https://neynarxyz.github.io/siwn/raw/1.2.0/index.js" async></script>
         </div>
         <div>
           {isConnected ? (
