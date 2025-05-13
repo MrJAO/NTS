@@ -92,7 +92,7 @@ export default function StatsTab({ fid }: { fid: number | null }) {
         const farcasterJson = await farcasterRes.json();
         const user = farcasterJson?.users?.[0];
         const followers = user?.follower_count || 0;
-const pfp = user?.pfp?.url;
+const pfp = user?.pfp_url;
 setFollowerCount(followers.toString());
 
 if (pfp && typeof pfp === "string" && pfp.startsWith("http")) {
