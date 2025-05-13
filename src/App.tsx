@@ -103,17 +103,24 @@ function NTSApp() {
   return (
     <div className="app-container">
       <div className="pixel-header">
-        <div className="user-box">
-          <span>🪪 FID: {fid ?? '—'}</span>
-          <span>👤 Username: {username ?? '—'}</span>
-          <div
-            className="neynar_signin"
-            data-client_id="38f06388-85eb-43d3-a1e3-453c4f04c5be"
-            data-success-callback="onSignInSuccess"
-            data-theme="dark"
-          />
-          <script src="https://neynarxyz.github.io/siwn/raw/1.2.0/index.js" async></script>
-        </div>
+<div className="user-box">
+  <span>🪪 FID: {fid ?? '—'}</span>
+  <span>👤 Username: {username ?? '—'}</span>
+  {!fid && (
+    <div
+      className="neynar_signin"
+      data-client_id="38f06388-85eb-43d3-a1e3-453c4f04c5be"
+      data-success-callback="onSignInSuccess"
+      data-theme="dark"
+    />
+  )}
+  {!fid && (
+    <script
+      src="https://neynarxyz.github.io/siwn/raw/1.2.0/index.js"
+      async
+    ></script>
+  )}
+</div>
         <div>
           {isConnected ? (
             <>

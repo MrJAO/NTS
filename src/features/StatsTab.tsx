@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAccount } from "wagmi";
 import { JsonRpcProvider, formatEther, Contract } from "ethers";
-import damageGameABI from "../../abis/DamageGame.json"; // Adjust path if needed
+import damageGameABI from "../../abis/DamageGame.json";
 
 const DAMAGE_GAME_ADDRESS = "0x3638D6aC0EC8081d6241DF9Dd95Da6c1BcF9d538";
 const ALCHEMY_KEY = import.meta.env.VITE_ALCHEMY_API_KEY;
@@ -52,6 +52,7 @@ export default function StatsTab({ fid }: { fid: number | null }) {
   const [damage, setDamage] = useState("-");
   const [followerCount, setFollowerCount] = useState("-");
   const [loading, setLoading] = useState(false);
+  const [pfpUrl, setPfpUrl] = useState("https://i.pravatar.cc/100");
 
   const fetchStats = async () => {
     if (!address) return;
@@ -83,15 +84,17 @@ export default function StatsTab({ fid }: { fid: number | null }) {
       }
       setNftCount(nftHeld.toString());
 
-      // ✅ Follower Count using Neynar API by FID
       if (fid) {
         const farcasterRes = await fetch(
           `https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}`,
           { headers: { accept: "application/json", api_key: NEYNAR_KEY } }
         );
         const farcasterJson = await farcasterRes.json();
-        const followers = farcasterJson?.users?.[0]?.follower_count || 0;
+        const user = farcasterJson?.users?.[0];
+        const followers = user?.follower_count || 0;
+        const pfp = user?.pfp?.url;
         setFollowerCount(followers.toString());
+        if (pfp) setPfpUrl(pfp);
       } else {
         setFollowerCount("0");
       }
@@ -119,7 +122,7 @@ export default function StatsTab({ fid }: { fid: number | null }) {
 
       <div className="text-center" style={{ marginTop: "10px" }}>
         <img
-          src="https://i.pravatar.cc/100"
+          src={pfpUrl}
           alt="Profile"
           style={{
             width: "100px",
