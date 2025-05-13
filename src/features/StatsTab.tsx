@@ -92,9 +92,14 @@ export default function StatsTab({ fid }: { fid: number | null }) {
         const farcasterJson = await farcasterRes.json();
         const user = farcasterJson?.users?.[0];
         const followers = user?.follower_count || 0;
-        const pfp = user?.pfp?.url;
-        setFollowerCount(followers.toString());
-        if (pfp) setPfpUrl(pfp);
+const pfp = user?.pfp?.url;
+setFollowerCount(followers.toString());
+
+if (pfp && typeof pfp === "string" && pfp.startsWith("http")) {
+  setPfpUrl(pfp);
+} else {
+  console.warn("⚠️ Invalid or missing profile picture URL");
+}
       } else {
         setFollowerCount("0");
       }
