@@ -59,21 +59,28 @@ app.post('/api/farcaster/sign-in', async (req, res) => {
     console.log("🔍 SIGNER_UUID:", process.env.SIGNER_UUID);
     console.log("🔍 NEYNAR_KEY:", process.env.NEYNAR_KEY?.slice(0, 5)); // partial key
 
-const response = await fetch('https://api.neynar.com/v2/farcaster/sign-in', {
-  method: 'POST',
-  headers: {
-    'accept': 'application/json',
-    'api_key': process.env.NEYNAR_KEY,
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    signer_uuid: process.env.SIGNER_UUID,
-    domain: 'nts-sigma.vercel.app'
-  })
-});
+    const response = await fetch('https://api.neynar.com/v2/farcaster/sign-in', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'api_key': process.env.NEYNAR_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        signer_uuid: process.env.SIGNER_UUID,
+        domain: 'nts-sigma.vercel.app'
+      })
+    });
 
-const data = await response.json();
-console.log("📦 Full Neynar Response:", data); // ← add this
+    const raw = await response.text();
+    console.log("📦 Raw Neynar Response:", raw);
+
+    let data = {};
+    try {
+      data = JSON.parse(raw);
+    } catch (err) {
+      console.error("❌ Failed to parse JSON:", err);
+    }
 
     if (!data.message || !data.signer_uuid) {
       throw new Error('Missing message or signer_uuid');
