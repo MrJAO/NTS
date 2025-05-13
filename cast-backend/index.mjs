@@ -7,9 +7,9 @@ import damageGameAbi from './DamageGame.json' assert { type: 'json' };
 import cors from 'cors';
 
 dotenv.config();
-app.use(cors());
-const app = express();
 
+const app = express();      // ✅ declare first
+app.use(cors({ origin: 'https://nts-sigma.vercel.app' }));
 app.use(express.json());
 
 const provider = new ethers.JsonRpcProvider(process.env.ALCHEMY_URL);
