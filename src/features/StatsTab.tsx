@@ -40,12 +40,11 @@ const FEATURED_NFTS = [
   "0x5af1e57d7d1c8a83d5dd244de71227caa2d69b31",
   "0x2577a6bf5ea12b5e2b53bc7bd3fc93a529434d11",
   "0x2eFe558C1b4636144D32127E9C12E36508350a02",
-  "0x6ed438b2a8eff227e7e54b5324926941b140eea0",
   "0x800f8cacc990dda9f4b3f1386c84983ffb65ce94",
   "0x209fb14943e9412354e982c4784bf89df760bf8f"
 ];
 
-export default function StatsTab() {
+export default function StatsTab({ fid }: { fid: number | null }) {
   const { address } = useAccount();
   const [mon, setMon] = useState("-");
   const [txCount, setTxCount] = useState("-");
@@ -54,64 +53,65 @@ export default function StatsTab() {
   const [followerCount, setFollowerCount] = useState("-");
   const [loading, setLoading] = useState(false);
 
-const fetchStats = async () => {
-  if (!address) return;
-  setLoading(true);
-  try {
-    const provider = new JsonRpcProvider("https://testnet-rpc.monad.xyz");
-    const balance = await provider.getBalance(address);
-    setMon(formatEther(balance));
-
-    // TX Count
-    const txRes = await fetch(`${ALCHEMY_URL}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 1,
-        method: "eth_getTransactionCount",
-        params: [address, "latest"]
-      })
-    });
-    const txJson = await txRes.json();
-    const txDecimal = parseInt(txJson?.result || "0x0", 16);
-    setTxCount(txDecimal.toString());
-
-    // NFT Count
-    let nftHeld = 0;
-    for (const contractAddr of FEATURED_NFTS) {
-      const res = await fetch(`${ALCHEMY_URL}/getNFTs?owner=${address}&contractAddresses[]=${contractAddr}`);
-      const json = await res.json();
-      if (json?.ownedNfts?.length > 0) nftHeld++;
-    }
-    setNftCount(nftHeld.toString());
-
-    // Follower Count
-    const farcasterRes = await fetch(
-      `https://api.neynar.com/v2/farcaster/user/bulk-by-address?addresses=${address}`,
-      { headers: { accept: "application/json", api_key: NEYNAR_KEY } }
-    );
-    const farcasterJson = await farcasterRes.json();
-    const followers = farcasterJson?.users?.[0]?.follower_count || 0;
-    setFollowerCount(followers.toString());
-
-    // ✅ Safe fetch from users mapping
-    const contract = new Contract(DAMAGE_GAME_ADDRESS, damageGameABI, provider);
+  const fetchStats = async () => {
+    if (!address) return;
+    setLoading(true);
     try {
-      const user = await contract.users(address);
-      const total = BigInt(user.totalDamage || 0);
-      const acc = BigInt(user.accumulatedDamage || 0);
-      setDamage((total + acc).toString());
-    } catch (err) {
-      console.warn("⚠️ Could not fetch Total Damage:", err);
-      setDamage("0");
-    }
+      const provider = new JsonRpcProvider("https://testnet-rpc.monad.xyz");
+      const balance = await provider.getBalance(address);
+      setMon(formatEther(balance));
 
-  } catch (err) {
-    console.error("Error fetching stats:", err);
-  }
-  setLoading(false);
-};
+      const txRes = await fetch(`${ALCHEMY_URL}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "eth_getTransactionCount",
+          params: [address, "latest"]
+        })
+      });
+      const txJson = await txRes.json();
+      const txDecimal = parseInt(txJson?.result || "0x0", 16);
+      setTxCount(txDecimal.toString());
+
+      let nftHeld = 0;
+      for (const contractAddr of FEATURED_NFTS) {
+        const res = await fetch(`${ALCHEMY_URL}/getNFTs?owner=${address}&contractAddresses[]=${contractAddr}`);
+        const json = await res.json();
+        if (json?.ownedNfts?.length > 0) nftHeld++;
+      }
+      setNftCount(nftHeld.toString());
+
+      // ✅ Follower Count using Neynar API by FID
+      if (fid) {
+        const farcasterRes = await fetch(
+          `https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}`,
+          { headers: { accept: "application/json", api_key: NEYNAR_KEY } }
+        );
+        const farcasterJson = await farcasterRes.json();
+        const followers = farcasterJson?.users?.[0]?.follower_count || 0;
+        setFollowerCount(followers.toString());
+      } else {
+        setFollowerCount("0");
+      }
+
+      const contract = new Contract(DAMAGE_GAME_ADDRESS, damageGameABI, provider);
+      try {
+        const user = await contract.users(address);
+        const total = BigInt(user.totalDamage || 0);
+        const acc = BigInt(user.accumulatedDamage || 0);
+        setDamage((total + acc).toString());
+      } catch (err) {
+        console.warn("⚠️ Could not fetch Total Damage:", err);
+        setDamage("0");
+      }
+
+    } catch (err) {
+      console.error("Error fetching stats:", err);
+    }
+    setLoading(false);
+  };
 
   return (
     <div className="tab-content">
@@ -132,12 +132,11 @@ const fetchStats = async () => {
       </div>
 
       <div style={{ paddingLeft: "20px", textAlign: "left" }}>
-        <p className="mini-note">Username: MrJAO</p>
         <p className="mini-note">MON Balance: {mon}</p>
         <p className="mini-note">Wallet: {address || "—"}</p>
         <p className="mini-note">TX Counts: {txCount}</p>
         <p className="mini-note">Featured NFT Holdings: {nftCount}</p>
-        <p className="mini-note">Farcaster Total Followers: {followerCount}</p>        
+        <p className="mini-note">Farcaster Total Followers: {followerCount}</p>
         <p className="mini-note">Total Dealt Damages: {damage}</p>
       </div>
 

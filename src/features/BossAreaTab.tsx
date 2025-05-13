@@ -19,11 +19,6 @@ const bossList = ["Fudster", "Jeetar", "Flyperhands", "Overgas", "Dr.Dumps", "Mr
 const ALCHEMY_URL = `https://monad-testnet.g.alchemy.com/v2/${import.meta.env.VITE_ALCHEMY_API_KEY}`;
 const NEYNAR_KEY = import.meta.env.VITE_NEYNAR_API_KEY;
 
-const isWarpcast = () => {
-  const ua = window.navigator.userAgent.toLowerCase();
-  return ua.includes("warpcast");
-};
-
 const FEATURED_NFTS = [
   "0xa980f072bc06d67faec2b03a8ada0d6c9d0da9f8",
   "0xff59f1e14c4f5522158a0cf029f94475ba469458",
@@ -469,16 +464,39 @@ case 'cast':
     <div className="tab-section">
       <button
         className="pixel-button"
-        onClick={() => {
+        onClick={async () => {
           const postText = encodeURIComponent(
             "🔥 I just dealt damage to the boss in NTS! Join the battle: https://nts-sigma.vercel.app/"
           );
-          if (isWarpcast()) {
-            // In Mini App (Frame)
-            window.location.href = `https://warpcast.com/~/compose?text=${postText}`;
-          } else {
-            // In browser
-            window.open(`https://warpcast.com/~/compose?text=${postText}`, "_blank");
+          const castUrl = `https://warpcast.com/~/compose?text=${postText}`;
+          window.open(castUrl, "_blank");
+
+          const input = prompt("📎 Paste the link to your cast here:");
+          if (!input || !input.includes("/")) return alert("❌ Invalid cast link.");
+
+          const parts = input.trim().split("/");
+          const castHash = parts[parts.length - 1];
+
+          try {
+            await fetch("/api/neynar-cast", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "x-neynar-signature": "test"
+              },
+              body: JSON.stringify({
+                data: {
+                  author: {
+                    verified_addresses: { eth_addresses: [address] }
+                  },
+                  hash: castHash
+                }
+              })
+            });
+            alert("✅ Cast registered! Damage dealt.");
+          } catch (err) {
+            console.error("❌ Failed to send cast to backend:", err);
+            alert("❌ Cast failed. Try again.");
           }
         }}
       >

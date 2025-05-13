@@ -16,7 +16,6 @@ import BossAreaTab from './features/BossAreaTab';
 import './main.css';
 import AdminTab from './pages/AdminTab';
 
-// Monad Testnet chain configs
 const monad = {
   id: 10143,
   name: 'Monad Testnet',
@@ -46,9 +45,7 @@ const monad = {
 const config = createConfig({
   connectors: [
     farcasterFrame(),
-    injected({
-      shimDisconnect: true,
-    }),
+    injected({ shimDisconnect: true }),
   ],
   chains: [monad],
   transports: {
@@ -70,14 +67,38 @@ function NTSApp() {
   useEffect(() => {
     const loadContext = async () => {
       const context = await sdk.context;
-      setFid(context?.user?.fid ?? null);
-      setUsername(context?.user?.username ?? null);
+      if (context?.user) {
+        setFid(context.user.fid ?? null);
+        setUsername(context.user.username ?? null);
+      }
     };
     loadContext();
   }, []);
 
+  const handleSignIn = async () => {
+    try {
+      const initRes = await fetch('/api/farcaster/sign-in');
+      const { signer_uuid } = await initRes.json();
+
+      const signed_message = prompt('Paste your signed message here');
+      if (!signed_message) return;
+
+      const verifyRes = await fetch('/api/farcaster/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ signer_uuid, signed_message })
+      });
+
+      const data = await verifyRes.json();
+      setFid(data.fid);
+      setUsername(data.username);
+    } catch (err) {
+      console.error('❌ Farcaster login failed:', err);
+      alert('Farcaster login failed');
+    }
+  };
+
   const handleConnect = () => {
-    // Prefer injected in browser, fallback to farcasterFrame if inside Warpcast
     const injectedConnector = connectors.find(c => c.id === 'injected');
     const farcasterConnector = connectors.find(c => c.id === 'farcaster');
 
@@ -96,6 +117,9 @@ function NTSApp() {
         <div className="user-box">
           <span>🪪 FID: {fid ?? '—'}</span>
           <span>👤 Username: {username ?? '—'}</span>
+          <button className="pixel-button" onClick={handleSignIn}>
+            Sign in with Farcaster
+          </button>
         </div>
         <div>
           {isConnected ? (
@@ -113,52 +137,19 @@ function NTSApp() {
         </div>
       </div>
 
-<div className="tab-nav">
-  <button
-    className={`pixel-button ${activeTab === 'stats' ? 'active' : ''}`}
-    onClick={() => setActiveTab('stats')}
-  >
-    Stats
-  </button>
-  <button
-    className={`pixel-button ${activeTab === 'boss' ? 'active' : ''}`}
-    onClick={() => setActiveTab('boss')}
-  >
-    Boss Area
-  </button>
-  <button
-    className={`pixel-button ${activeTab === 'leaderboard' ? 'active' : ''}`}
-    onClick={() => setActiveTab('leaderboard')}
-  >
-    Leaderboard
-  </button>
-  <button
-    className={`pixel-button ${activeTab === 'rewards' ? 'active' : ''}`}
-    onClick={() => setActiveTab('rewards')}
-  >
-    Rewards
-  </button>
-  <button
-    className={`pixel-button ${activeTab === 'admin' ? 'active' : ''}`}
-    onClick={() => setActiveTab('admin')}
-  >
-    Admin
-  </button>
-</div>
+      <div className="tab-nav">
+        <button className={`pixel-button ${activeTab === 'stats' ? 'active' : ''}`} onClick={() => setActiveTab('stats')}>Stats</button>
+        <button className={`pixel-button ${activeTab === 'boss' ? 'active' : ''}`} onClick={() => setActiveTab('boss')}>Boss Area</button>
+        <button className={`pixel-button ${activeTab === 'leaderboard' ? 'active' : ''}`} onClick={() => setActiveTab('leaderboard')}>Leaderboard</button>
+        <button className={`pixel-button ${activeTab === 'rewards' ? 'active' : ''}`} onClick={() => setActiveTab('rewards')}>Rewards</button>
+        <button className={`pixel-button ${activeTab === 'admin' ? 'active' : ''}`} onClick={() => setActiveTab('admin')}>Admin</button>
+      </div>
 
-{activeTab === 'stats' && <StatsTab />}
-{activeTab === 'boss' && <BossAreaTab />}
-{activeTab === 'leaderboard' && (
-  <div className="tab-content text-center">
-    <p>🏆 Leaderboard coming soon...</p>
-  </div>
-)}
-{activeTab === 'rewards' && (
-  <div className="tab-content text-center">
-    <p>🎁 Rewards system coming soon...</p>
-  </div>
-)}
-{activeTab === 'admin' && <AdminTab />}
+      {activeTab === 'stats' && <StatsTab fid={fid} />}
+      {activeTab === 'boss' && <BossAreaTab />}
+      {activeTab === 'leaderboard' && <div className="tab-content text-center"><p>🏆 Leaderboard coming soon...</p></div>}
+      {activeTab === 'rewards' && <div className="tab-content text-center"><p>🎁 Rewards system coming soon...</p></div>}
+      {activeTab === 'admin' && <AdminTab />}
     </div>
   );
 }
