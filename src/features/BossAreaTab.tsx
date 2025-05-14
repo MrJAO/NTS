@@ -468,11 +468,11 @@ case 'cast':
     if (!castHash || !address) return;
     setGenerating(true);
     try {
-const res = await fetch("https://nts-production.up.railway.app/api/sign-cast", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ hash: castHash, ethAddress: address })
-});
+      const res = await fetch("https://nts-production.up.railway.app/api/sign-cast", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hash: castHash, ethAddress: address })
+      });
       const json = await res.json();
       setCastSignature(json.signature || "");
     } catch (err) {
@@ -484,19 +484,10 @@ const res = await fetch("https://nts-production.up.railway.app/api/sign-cast", {
 
   const submitCast = async () => {
     if (!castHash || !castSignature || !address) return;
-    const now = Date.now();
-    const lastCastTime = localStorage.getItem("lastCastSubmit");
-    if (lastCastTime && now - Number(lastCastTime) < 12 * 60 * 60 * 1000) {
-      const remaining = 12 * 60 * 60 * 1000 - (now - Number(lastCastTime));
-      const hours = Math.floor(remaining / 3600000);
-      const minutes = Math.floor((remaining % 3600000) / 60000);
-      alert(`⏳ You can submit again in ${hours}h ${minutes}m`);
-      return;
-    }
 
     setSubmitting(true);
     try {
-      await fetch("/api/neynar-cast", {
+      await fetch("https://nts-production.up.railway.app/api/neynar-cast", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -514,7 +505,6 @@ const res = await fetch("https://nts-production.up.railway.app/api/sign-cast", {
         })
       });
       alert("✅ Cast damage submitted!");
-      localStorage.setItem("lastCastSubmit", String(now));
     } catch (err) {
       alert("❌ Failed to submit cast");
       console.error(err);

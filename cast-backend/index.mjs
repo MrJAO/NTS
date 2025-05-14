@@ -28,10 +28,10 @@ function isValidSignature(req) {
 
 // ✅ Cast webhook handler
 app.post('/api/neynar-cast', async (req, res) => {
-if (!isValidSignature(req)) {
-  console.warn("❌ Invalid webhook signature:", req.headers['x-neynar-signature']);
-  return res.sendStatus(401);
-}
+  if (!isValidSignature(req)) {
+    console.warn("❌ Invalid webhook signature:", req.headers['x-neynar-signature']);
+    return res.sendStatus(401);
+  }
 
   const cast = req.body.data;
   const castHash = cast?.hash;
@@ -42,19 +42,19 @@ if (!isValidSignature(req)) {
     return res.sendStatus(200);
   }
 
-try {
-  const castId = ethers.getBigInt(ethers.id(castHash));
-  console.log("📡 Attempting to call registerCast with:", ethAddress, castId.toString());
+  try {
+    const castId = ethers.getBigInt(ethers.id(castHash));
+    console.log("📡 Attempting to call registerCast with:", ethAddress, castId.toString());
 
-  const tx = await contract.registerCast(ethAddress, castId);
-  await tx.wait();
+    const tx = await contract.registerCast(ethAddress, castId);
+    await tx.wait();
 
-  console.log(`📥 New cast webhook received from ${ethAddress}, hash: ${castHash}`);
-  console.log(`🧾 Cast ID (hashed): ${castId.toString()}`);
-  console.log(`✅ Damage applied from webhook cast: ${tx.hash}`);
-} catch (err) {
-  console.warn("❌ Failed to apply cast damage:", err.reason || err.message || err);
-}
+    console.log(`📥 New cast webhook received from ${ethAddress}, hash: ${castHash}`);
+    console.log(`🧾 Cast ID (hashed): ${castId.toString()}`);
+    console.log(`✅ Damage applied from webhook cast: ${tx.hash}`);
+  } catch (err) {
+    console.warn("❌ Failed to apply cast damage:", err.reason || err.message || err);
+  }
 
   res.sendStatus(200);
 });
