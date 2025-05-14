@@ -15,6 +15,7 @@ app.use(express.json());
 const provider = new ethers.JsonRpcProvider(process.env.ALCHEMY_URL);
 const wallet = new ethers.Wallet(process.env.BOT_PRIVATE_KEY, provider);
 const contract = new ethers.Contract(process.env.CONTRACT_ADDRESS, damageGameAbi, wallet);
+console.log("🧾 Cast bot wallet address:", wallet.address);
 
 // 🔒 Verify Neynar webhook signature
 function isValidSignature(req) {
