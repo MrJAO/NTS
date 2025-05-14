@@ -25,18 +25,6 @@ const db = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-// Fix cast_submissions.created_at default and backfill existing nulls
-const fixCreatedAt = async () => {
-  try {
-    await db.query(`ALTER TABLE cast_submissions ALTER COLUMN created_at SET DEFAULT NOW()`);
-    await db.query(`UPDATE cast_submissions SET created_at = NOW() WHERE created_at IS NULL`);
-    console.log("✅ created_at default and data backfilled.");
-  } catch (err) {
-    console.warn("⚠️ created_at patch skipped or already applied:", err.message);
-  }
-};
-fixCreatedAt();
-
 // 🔒 Verify Neynar webhook signature
 function isValidSignature(req) {
   const secret = process.env.WEBHOOK_SECRET;

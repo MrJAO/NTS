@@ -572,7 +572,10 @@ case 'cast':
 </button>
 
       <p className="mini-note">
-        +1 per Like, Comment, Quote
+        +1 Like, Comment, Quote will accumulate additional damages
+      </p>
+      <p className="mini-note" style={{fontSize: "9px", color: "#ffcc00" }}>
+          ⚠️ Accumulated damages will refresh every 5mins  
       </p>
     </div>
   );
