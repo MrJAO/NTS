@@ -468,11 +468,11 @@ case 'cast':
     if (!castHash || !address) return;
     setGenerating(true);
     try {
-      const res = await fetch("/api/sign-cast", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ hash: castHash, ethAddress: address })
-      });
+const res = await fetch("https://nts-production.up.railway.app/api/sign-cast", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ hash: castHash, ethAddress: address })
+});
       const json = await res.json();
       setCastSignature(json.signature || "");
     } catch (err) {
