@@ -540,9 +540,36 @@ case 'cast':
         {submitting ? "Submitting..." : "Submit Cast Damage"}
       </button>
 
-      <p className="mini-note" style={{ marginTop: "10px", fontSize: "12px", color: "#ffd700" }}>
-        📦 Your Accumulated Damage: {userData ? ((userData as UserStruct)[1]).toString() : "0"}
-      </p>
+<p className="mini-note" style={{ marginTop: "10px", fontSize: "12px", color: "#ffd700" }}>
+  📦 Your Accumulated Damage: {userData ? ((userData as UserStruct)[1]).toString() : "0"}
+</p>
+
+<button
+  className="pixel-button"
+  style={{ marginTop: "6px" }}
+  disabled={!userData || (userData as UserStruct)[1] === 0n}
+  onClick={async () => {
+    if (!address) return;
+    try {
+      const res = await fetch("https://nts-production.up.railway.app/api/claim-accumulated", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address })
+      });
+      const json = await res.json();
+      if (json.success) {
+        alert(`✅ Claimed ${json.appliedDamage} damage from accumulated.`);
+      } else {
+        alert(`❌ ${json.error || "Claim failed"}`);
+      }
+    } catch (err) {
+      alert("❌ Claim failed");
+      console.error(err);
+    }
+  }}
+>
+  Claim Accumulated Damage
+</button>
 
       <p className="mini-note">
         +1 per Like, Comment, Quote

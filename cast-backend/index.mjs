@@ -25,6 +25,18 @@ const db = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
+// Fix cast_submissions.created_at default and backfill existing nulls
+const fixCreatedAt = async () => {
+  try {
+    await db.query(`ALTER TABLE cast_submissions ALTER COLUMN created_at SET DEFAULT NOW()`);
+    await db.query(`UPDATE cast_submissions SET created_at = NOW() WHERE created_at IS NULL`);
+    console.log("✅ created_at default and data backfilled.");
+  } catch (err) {
+    console.warn("⚠️ created_at patch skipped or already applied:", err.message);
+  }
+};
+fixCreatedAt();
+
 // 🔒 Verify Neynar webhook signature
 function isValidSignature(req) {
   const secret = process.env.WEBHOOK_SECRET;
@@ -113,6 +125,22 @@ setInterval(async () => {
     console.error("❌ Engagement poll failed:", err);
   }
 }, 5 * 60 * 1000); // Run every 5 mins
+
+// ✅ Claim accumulated damage manually
+app.post('/api/claim-accumulated', async (req, res) => {
+  const { address } = req.body;
+  if (!address) return res.status(400).json({ error: 'Missing address' });
+
+  try {
+    const tx = await contract.applyDamage(address, 0); // base=0 means use accumulated
+    await tx.wait();
+    console.log(`✅ Claimed accumulated damage for ${address}`);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('❌ Failed to claim accumulated damage:', err.reason || err.message || err);
+    res.status(500).json({ error: 'Claim failed' });
+  }
+});
 
 // ✅ Farcaster Sign-in Step 1 — using new Neynar endpoint
 app.post('/api/farcaster/sign-in', async (req, res) => {
