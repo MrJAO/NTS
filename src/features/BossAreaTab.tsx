@@ -464,44 +464,25 @@ case 'cast':
     <div className="tab-section">
       <button
         className="pixel-button"
-        onClick={async () => {
+        onClick={() => {
           const postText = encodeURIComponent(
             "🔥 I just dealt damage to the boss in NTS! Join the battle: https://nts-sigma.vercel.app/"
           );
           const castUrl = `https://warpcast.com/~/compose?text=${postText}`;
           window.open(castUrl, "_blank");
-
-          const input = prompt("📎 Paste the link to your cast here:");
-          if (!input || !input.includes("/")) return alert("❌ Invalid cast link.");
-
-          const parts = input.trim().split("/");
-          const castHash = parts[parts.length - 1];
-
-          try {
-            await fetch("/api/neynar-cast", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "x-neynar-signature": "test"
-              },
-              body: JSON.stringify({
-                data: {
-                  author: {
-                    verified_addresses: { eth_addresses: [address] }
-                  },
-                  hash: castHash
-                }
-              })
-            });
-            alert("✅ Cast registered! Damage dealt.");
-          } catch (err) {
-            console.error("❌ Failed to send cast to backend:", err);
-            alert("❌ Cast failed. Try again.");
-          }
         }}
       >
-        Cast
+        Create Cast on Warpcast
       </button>
+
+      <p className="mini-note" style={{ marginTop: "10px", fontSize: "10px", color: "#90ee90" }}>
+        ✅ Cast will be auto-detected & damage applied once posted.
+      </p>
+
+      <p className="mini-note" style={{ marginTop: "10px", fontSize: "12px", color: "#ffd700" }}>
+        📦 Your Accumulated Damage: {userData ? ((userData as UserStruct)[1]).toString() : "0"}
+      </p>
+
       <p className="mini-note">
         +20 damage per post<br />
         +1 per Like, Comment, Quote

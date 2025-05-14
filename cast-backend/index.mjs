@@ -27,10 +27,10 @@ function isValidSignature(req) {
 
 // ✅ Cast webhook handler
 app.post('/api/neynar-cast', async (req, res) => {
-  if (!isValidSignature(req)) {
-    console.warn("❌ Invalid webhook signature");
-    return res.sendStatus(401);
-  }
+if (!isValidSignature(req)) {
+  console.warn("❌ Invalid webhook signature:", req.headers['x-neynar-signature']);
+  return res.sendStatus(401);
+}
 
   const cast = req.body.data;
   const castHash = cast?.hash;
@@ -45,10 +45,11 @@ app.post('/api/neynar-cast', async (req, res) => {
     const castId = ethers.getBigInt(ethers.id(castHash));
     const tx = await contract.registerCast(ethAddress, castId);
     await tx.wait();
-    console.log(`✅ Damage applied from webhook cast: ${tx.hash}`);
-  } catch (err) {
-    console.warn(`❌ Failed to apply cast damage:`, err.reason || err.message);
-  }
+console.log(`📥 New cast webhook received from ${ethAddress}, hash: ${castHash}`);
+console.log(`🧾 Cast ID (hashed): ${castId.toString()}`);
+} catch (err) {
+  console.warn(`❌ Failed to apply cast damage:`, err.reason || err.message);
+}
 
   res.sendStatus(200);
 });

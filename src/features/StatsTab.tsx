@@ -177,6 +177,18 @@ if (pfp && typeof pfp === "string" && pfp.startsWith("http")) {
   <li>Per Post Qoutes: 1 damage each (goes to accumulated damage)</li>
 </ul>
 
+<ul className="mini-note" style={{ marginTop: "10px", paddingLeft: "20px", textAlign: "left" }}>
+  <li><strong>How to Start:</strong></li>
+  <li>---</li>  
+  <li>1. Go to Warpcast/Farcaster ➟ Edit Profile</li>
+  <li>2. Go to Verified Addresses</li> 
+  <li>4. Click Verify Address</li>  
+  <li>5. Connect and Confirm</li>
+  <li>---</li>  
+  <li>6. Sign-in using Neynar</li>
+  <li>7. All done, you can navigate freely to the app now</li>
+</ul>
+
 <ul className="mini-note" style={{ marginTop: "20px", paddingLeft: "20px", textAlign: "left" }}>
   <li><strong>Damage Calculations</strong></li>
   <li>---</li>  
