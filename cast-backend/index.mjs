@@ -120,6 +120,33 @@ app.post('/api/farcaster/verify', async (req, res) => {
   }
 });
 
+// ✅ Generate HMAC signature for manual cast submission
+app.post('/api/sign-cast', (req, res) => {
+  const { hash, ethAddress } = req.body;
+
+  if (!hash || !ethAddress) {
+    return res.status(400).json({ error: 'Missing hash or ethAddress' });
+  }
+
+  const rawBody = JSON.stringify({
+    data: {
+      hash,
+      author: {
+        verified_addresses: {
+          eth_addresses: [ethAddress]
+        }
+      }
+    }
+  });
+
+  const signature = crypto
+    .createHmac('sha256', process.env.WEBHOOK_SECRET)
+    .update(rawBody)
+    .digest('hex');
+
+  res.json({ signature });
+});
+
 app.get('/', (req, res) => res.send('Cast Trigger Backend Running'));
 
 app.listen(process.env.PORT, () =>

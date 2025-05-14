@@ -182,11 +182,23 @@ if (pfp && typeof pfp === "string" && pfp.startsWith("http")) {
   <li>---</li>  
   <li>1. Go to Warpcast/Farcaster ➟ Edit Profile</li>
   <li>2. Go to Verified Addresses</li> 
-  <li>4. Click Verify Address</li>  
-  <li>5. Connect and Confirm</li>
+  <li>3. Click Verify Address</li>  
+  <li>4. Connect and Confirm</li>
   <li>---</li>  
-  <li>6. Sign-in using Neynar</li>
-  <li>7. All done, you can navigate freely to the app now</li>
+  <li>5. Sign-in using Neynar</li>
+  <li>6. All done, you can navigate freely to the app now</li>
+</ul>
+
+<ul className="mini-note" style={{ marginTop: "10px", paddingLeft: "20px", textAlign: "left" }}>
+  <li><strong>Cast Feature - Guide:</strong></li>
+  <li>---</li>  
+  <li>1. Go to Farcaster and cast something or click Create Cast and write something.</li>
+  <li>2. After casting/posting click the three dots (...) on that post and copy the Cast Hash</li> 
+  <li>3. Paste the Cast Hash in the "Paste your Cast Hash" box</li>  
+  <li>4. Click "Generate Signature"</li>
+  <li>5. Submit Cast Damage to deal damage to the boss. </li>
+  <li>---</li>  
+  <li>Note: Submitted Cast will get additional if the cast get Like, Comment, or Qoute. +1 damage each</li>
 </ul>
 
 <ul className="mini-note" style={{ marginTop: "20px", paddingLeft: "20px", textAlign: "left" }}>

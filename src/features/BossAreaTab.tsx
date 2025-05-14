@@ -81,6 +81,10 @@ export default function BossAreaTab() {
   const [tokenTicker, setTokenTicker] = useState("");
   const [tokenSupply, setTokenSupply] = useState("");
   const [tokenCooldownText, setTokenCooldownText] = useState("");
+  const [castHash, setCastHash] = useState("");
+  const [castSignature, setCastSignature] = useState("");
+  const [generating, setGenerating] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const { data: bossHealth } = useContractRead({
     address: DAMAGE_GAME_ADDRESS,
@@ -460,31 +464,97 @@ case 'create':
           </div>
         );
 case 'cast':
+  const generateSignature = async () => {
+    if (!castHash || !address) return;
+    setGenerating(true);
+    try {
+      const res = await fetch("/api/sign-cast", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hash: castHash, ethAddress: address })
+      });
+      const json = await res.json();
+      setCastSignature(json.signature || "");
+    } catch (err) {
+      alert("❌ Failed to generate signature");
+      console.error(err);
+    }
+    setGenerating(false);
+  };
+
+  const submitCast = async () => {
+    if (!castHash || !castSignature || !address) return;
+    const now = Date.now();
+    const lastCastTime = localStorage.getItem("lastCastSubmit");
+    if (lastCastTime && now - Number(lastCastTime) < 12 * 60 * 60 * 1000) {
+      const remaining = 12 * 60 * 60 * 1000 - (now - Number(lastCastTime));
+      const hours = Math.floor(remaining / 3600000);
+      const minutes = Math.floor((remaining % 3600000) / 60000);
+      alert(`⏳ You can submit again in ${hours}h ${minutes}m`);
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await fetch("/api/neynar-cast", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-neynar-signature": castSignature
+        },
+        body: JSON.stringify({
+          data: {
+            hash: castHash,
+            author: {
+              verified_addresses: {
+                eth_addresses: [address]
+              }
+            }
+          }
+        })
+      });
+      alert("✅ Cast damage submitted!");
+      localStorage.setItem("lastCastSubmit", String(now));
+    } catch (err) {
+      alert("❌ Failed to submit cast");
+      console.error(err);
+    }
+    setSubmitting(false);
+  };
+
   return (
     <div className="tab-section">
-      <button
-        className="pixel-button"
-        onClick={() => {
-          const postText = encodeURIComponent(
-            "🔥 I just dealt damage to the boss in NTS! Join the battle: https://nts-sigma.vercel.app/"
-          );
-          const castUrl = `https://warpcast.com/~/compose?text=${postText}`;
-          window.open(castUrl, "_blank");
-        }}
-      >
-        Create Cast on Warpcast
+      <p className="mini-note" style={{ textAlign: "center", fontSize: "9px", color: "#ffcc00" }}>
+        ⚠️ Check Stats Tab for this feature guide.
+      </p>
+
+      <input
+        type="text"
+        className="input-box"
+        placeholder="Paste your Cast Hash"
+        value={castHash}
+        onChange={(e) => setCastHash(e.target.value)}
+      />
+      <button className="pixel-button" onClick={generateSignature} disabled={generating}>
+        {generating ? "Generating..." : "Generate Signature"}
       </button>
 
-      <p className="mini-note" style={{ marginTop: "10px", fontSize: "10px", color: "#90ee90" }}>
-        ✅ Cast will be auto-detected & damage applied once posted.
-      </p>
+      <input
+        type="text"
+        className="input-box"
+        placeholder="Paste Generated Signature"
+        value={castSignature}
+        onChange={(e) => setCastSignature(e.target.value)}
+      />
+      <button className="pixel-button" onClick={submitCast} disabled={submitting}>
+        {submitting ? "Submitting..." : "Submit Cast Damage"}
+      </button>
 
       <p className="mini-note" style={{ marginTop: "10px", fontSize: "12px", color: "#ffd700" }}>
         📦 Your Accumulated Damage: {userData ? ((userData as UserStruct)[1]).toString() : "0"}
       </p>
 
       <p className="mini-note">
-        +20 damage per post<br />
         +1 per Like, Comment, Quote
       </p>
     </div>
