@@ -42,14 +42,18 @@ if (!isValidSignature(req)) {
     return res.sendStatus(200);
   }
 
-  try {
-    const castId = ethers.getBigInt(ethers.id(castHash));
-    const tx = await contract.registerCast(ethAddress, castId);
-    await tx.wait();
-console.log(`📥 New cast webhook received from ${ethAddress}, hash: ${castHash}`);
-console.log(`🧾 Cast ID (hashed): ${castId.toString()}`);
+try {
+  const castId = ethers.getBigInt(ethers.id(castHash));
+  console.log("📡 Attempting to call registerCast with:", ethAddress, castId.toString());
+
+  const tx = await contract.registerCast(ethAddress, castId);
+  await tx.wait();
+
+  console.log(`📥 New cast webhook received from ${ethAddress}, hash: ${castHash}`);
+  console.log(`🧾 Cast ID (hashed): ${castId.toString()}`);
+  console.log(`✅ Damage applied from webhook cast: ${tx.hash}`);
 } catch (err) {
-  console.warn(`❌ Failed to apply cast damage:`, err.reason || err.message);
+  console.warn("❌ Failed to apply cast damage:", err.reason || err.message || err);
 }
 
   res.sendStatus(200);
