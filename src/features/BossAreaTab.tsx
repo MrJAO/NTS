@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAccount, useContractRead, useWriteContract } from "wagmi";
 import roastLines from "../constants/roastLines";
 import damageGameArtifact from "../../abis/DamageGame.json";
+import { usePublicClient } from 'wagmi';
 
 type UserStruct = [
   totalDamage: bigint,
@@ -85,6 +86,8 @@ export default function BossAreaTab() {
   const [castSignature, setCastSignature] = useState("");
   const [generating, setGenerating] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [accumulatedDamage, setAccumulatedDamage] = useState<bigint>(0n);
+  const publicClient = usePublicClient();
 
   const { data: bossHealth } = useContractRead({
     address: DAMAGE_GAME_ADDRESS,
@@ -125,6 +128,37 @@ const userTokenRead = useContractRead({
 });
 
 const userToken = userTokenRead.data as string | undefined;
+
+useEffect(() => {
+  let interval: NodeJS.Timeout;
+
+const fetchAccumulated = async () => {
+  if (!publicClient || !address || activeTab !== 'cast') return;
+
+  try {
+    const stats = await publicClient.readContract({
+      address: DAMAGE_GAME_ADDRESS,
+      abi: damageGameArtifact,
+      functionName: "fetchUserStats",
+      args: [address]
+    });
+
+    setAccumulatedDamage((stats as any)[2] as bigint);
+  } catch (err: any) {
+    if (err.message?.includes("reverted") || err.name === "ContractFunctionExecutionError") {
+      // User not initialized in mapping yet — safe to ignore
+      setAccumulatedDamage(0n);
+    } else {
+      console.warn("❌ Unexpected error reading accumulatedDamage:", err);
+    }
+  }
+};
+
+  interval = setInterval(fetchAccumulated, 6000);
+  fetchAccumulated();
+
+  return () => clearInterval(interval);
+}, [address, activeTab]);
 
   useEffect(() => {
     const roastInterval = setInterval(() => {
@@ -532,7 +566,7 @@ case 'cast':
       <input
         type="text"
         className="input-box"
-        placeholder="Paste Generated Signature"
+        placeholder="Click Generate Signature to fill this box"
         value={castSignature}
         onChange={(e) => setCastSignature(e.target.value)}
       />
@@ -541,13 +575,13 @@ case 'cast':
       </button>
 
 <p className="mini-note" style={{ marginTop: "10px", fontSize: "12px", color: "#ffd700" }}>
-  📦 Your Accumulated Damage: {userData ? ((userData as UserStruct)[1]).toString() : "0"}
+📦 Your Accumulated Damage: {accumulatedDamage > 0n ? accumulatedDamage.toString() : "No reactions yet"}
 </p>
 
 <button
   className="pixel-button"
   style={{ marginTop: "6px" }}
-  disabled={!userData || (userData as UserStruct)[1] === 0n}
+disabled={!address || accumulatedDamage === 0n}
   onClick={async () => {
     if (!address) return;
     try {

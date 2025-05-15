@@ -192,13 +192,13 @@ if (pfp && typeof pfp === "string" && pfp.startsWith("http")) {
 <ul className="mini-note" style={{ marginTop: "10px", paddingLeft: "20px", textAlign: "left" }}>
   <li><strong>Cast Feature - Guide:</strong></li>
   <li>---</li>  
-  <li>1. Go to Farcaster and cast something or click Create Cast and write something.</li>
+  <li>1. Go to Farcaster and cast something </li>
   <li>2. After casting/posting click the three dots (...) on that post and copy the Cast Hash</li> 
   <li>3. Paste the Cast Hash in the "Paste your Cast Hash" box</li>  
-  <li>4. Click "Generate Signature"</li>
+  <li>4. Click "Generate Signature", it will automatically fill the next box</li>
   <li>5. Submit Cast Damage to deal damage to the boss. </li>
   <li>---</li>  
-  <li>Note: Submitted Cast will get additional if the cast get Like, Comment, or Qoute. +1 damage each</li>
+  <li>Note: Submitted Cast will get additional damage if the cast get Like, Comment, or Qoute</li>
 </ul>
 
 <ul className="mini-note" style={{ marginTop: "20px", paddingLeft: "20px", textAlign: "left" }}>
