@@ -13,6 +13,8 @@ import { farcasterFrame } from '@farcaster/frame-wagmi-connector';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import StatsTab from './features/StatsTab';
 import BossAreaTab from './features/BossAreaTab';
+import LeaderboardTab from './features/Leaderboard';
+import RewardsTab from './features/Rewards';
 import './main.css';
 
 declare global {
@@ -145,8 +147,8 @@ function NTSApp() {
 
       {activeTab === 'stats' && <StatsTab fid={fid} />}
       {activeTab === 'boss' && <BossAreaTab />}
-      {activeTab === 'leaderboard' && <div className="tab-content text-center"><p>🏆 Leaderboard coming soon...</p></div>}
-      {activeTab === 'rewards' && <div className="tab-content text-center"><p>🎁 Rewards system coming soon...</p></div>}
+      {activeTab === 'leaderboard' && <LeaderboardTab />}
+      {activeTab === 'rewards' && <RewardsTab />}
     </div>
   );
 }
