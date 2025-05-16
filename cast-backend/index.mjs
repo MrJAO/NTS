@@ -284,13 +284,19 @@ app.get('/api/leaderboard', async (req, res) => {
     const leaderboardData = [];
 
     for (const addr of userAddresses) {
+      let stats;
       try {
-        const stats = await contract.fetchUserStats(addr);
+        stats = await contract.fetchUserStats(addr);
+      } catch {
+        // silently skip addresses that revert (uninitialized or inactive users)
+        continue;
+      }
+
+      try {
         const total = BigInt(stats[1]);
         const acc = BigInt(stats[2]);
         const combined = total + acc;
 
-        // Get latest weekly snapshot for user
         const { rows: weeklySnap } = await db.query(`
           SELECT total_damage, accumulated_damage 
           FROM weekly_snapshots 
@@ -303,7 +309,6 @@ app.get('/api/leaderboard', async (req, res) => {
         const weeklySnapshot = weeklyTotal + weeklyAcc;
         const weeklyDelta = combined - weeklySnapshot;
 
-        // Get latest monthly snapshot for user
         const { rows: monthlySnap } = await db.query(`
           SELECT total_damage, accumulated_damage 
           FROM monthly_snapshots 
@@ -324,9 +329,8 @@ app.get('/api/leaderboard', async (req, res) => {
           weekly_delta: weeklyDelta.toString(),
           monthly_delta: monthlyDelta.toString()
         });
-
       } catch (err) {
-        console.warn(`⚠️ Could not process leaderboard for ${addr}:`, err.message || err);
+        console.warn(`⚠️ Could not fully process leaderboard entry for ${addr}:`, err.message || err);
       }
     }
 
