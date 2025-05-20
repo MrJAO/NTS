@@ -1,17 +1,17 @@
 {
   "version": "vNext",
   "app": {
-    "name": "NTS Mini App",
-    "description": "Display Farcaster ID, Username, and connect wallet",
+    "name": "NTS Boss Battle",
+    "description": "Fight together and beat the Bosses with Monad and Farcaster interactions",
     "icon": "https://nts-sigma.vercel.app/Overgas.png"
   },
   "publisher": {
     "name": "mrjao",
     "url": "https://nts-sigma.vercel.app"
   },
-  "url": "https://nts-sigma.vercel.app/frame.html",
+  "url": "https://nts-sigma.vercel.app",
   "embed": {
-    "url": "https://nts-sigma.vercel.app/frame.html"
+    "url": "https://nts-sigma.vercel.app"
   },
   "accountAssociation": {
     "header": "eyJmaWQiOjEwNzQxMjcsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHhDNjNlODQ5YkEyOTkwM0JjYUUzYTY0MDRDOTFlZTU5NmI5RTZBZDgxIn0",
@@ -20,13 +20,23 @@
   },
   "frame": {
     "version": "1",
-    "name": "NTS Frame",
-    "iconUrl": "https://nts-sigma.vercel.app/icon.png",
-    "homeUrl": "https://nts-sigma.vercel.app",
-    "imageUrl": "https://nts-sigma.vercel.app/image.png",
-    "buttonTitle": "Check this out",
-    "splashImageUrl": "https://nts-sigma.vercel.app/splash.png",
+    "name": "NTS Boss Battle",
+    "iconUrl": "https://nts-sigma.vercel.app/Overgas.png",
+    "splashImageUrl": "https://nts-sigma.vercel.app/Overgas.png",
     "splashBackgroundColor": "#eeccff",
+    "homeUrl": "https://nts-sigma.vercel.app",
+    "imageUrl": "https://nts-sigma.vercel.app/Overgas.png",
+    "buttonTitle": "Check this out",
+    "subtitle": "Battling Bosses with Monad and Farcaster interactions",
+    "description": "Fight together and beat the Bosses with Monad and Farcaster interactions",
+    "screenshotUrls": [],
+    "primaryCategory": "monad-testnet, farcaster-miniapp",
+    "tags": ["monad", "nft", "mint", "stake", "testnet"],
+    "heroImageUrl": "https://nts-sigma.vercel.app/Overgas.png",
+    "tagline": "NTS Boss Battle",
+    "ogTitle": "NTS",
+    "ogDescription": "Fight together and beat the Bosses with Monad and Farcaster interactions",
+    "ogImageUrl": "https://nts-sigma.vercel.app/Overgas.png",
     "webhookUrl": "https://nts-sigma.vercel.app/api/webhook"
   }
 }
