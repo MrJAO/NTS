@@ -93,9 +93,13 @@ function NTSApp() {
   }, []);
 
   const handleConnect = () => {
-    const available = connectors.find(c => c.ready);
-    if (available) {
-      connect({ connector: available });
+    const injectedConnector = connectors.find(c => c.id === 'injected');
+    const farcasterConnector = connectors.find(c => c.id === 'farcaster');
+
+    if (injectedConnector && typeof window !== 'undefined' && window.ethereum) {
+      connect({ connector: injectedConnector });
+    } else if (farcasterConnector) {
+      connect({ connector: farcasterConnector });
     } else {
       alert('No supported wallet connector available');
     }
