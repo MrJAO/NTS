@@ -178,7 +178,7 @@ if (pfp && typeof pfp === "string" && pfp.startsWith("http")) {
 </ul>
 
 <ul className="mini-note" style={{ marginTop: "10px", paddingLeft: "20px", textAlign: "left" }}>
-  <li><strong>How to Start:</strong></li>
+  <li><strong>How to Start (Web browser/Warcast Desktop version):</strong></li>
   <li>---</li>  
   <li>1. Go to Warpcast/Farcaster ➟ Edit Profile</li>
   <li>2. Go to Verified Addresses</li> 

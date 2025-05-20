@@ -6,8 +6,8 @@ import {
   WagmiProvider,
   createConfig,
   http,
+  useSwitchChain,
 } from 'wagmi';
-import { switchChain } from 'wagmi/actions';
 import { injected } from 'wagmi/connectors';
 import sdk from '@farcaster/frame-sdk';
 import { farcasterFrame } from '@farcaster/frame-wagmi-connector';
@@ -71,6 +71,7 @@ function NTSApp() {
   const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
+  const { switchChain } = useSwitchChain();
 
   useEffect(() => {
     const loadContext = async () => {
@@ -92,22 +93,22 @@ function NTSApp() {
 
   useEffect(() => {
     if (isConnected) {
-      switchChain(config, { chainId: monad.id }).catch(console.error);
+switchChain({ chainId: monad.id })
     }
-  }, [isConnected]);
+  }, [isConnected, switchChain]);
 
-const handleConnect = () => {
-  const injectedConnector = connectors.find(c => c.id === 'injected');
-  const farcasterConnector = connectors.find(c => c.id === 'farcaster');
+  const handleConnect = () => {
+    const injectedConnector = connectors.find(c => c.id === 'injected');
+    const farcasterConnector = connectors.find(c => c.id === 'farcaster');
 
-  if (injectedConnector && typeof window !== 'undefined' && window.ethereum) {
-    connect({ connector: injectedConnector, chainId: monad.id });
-  } else if (farcasterConnector) {
-    connect({ connector: farcasterConnector, chainId: monad.id });
-  } else {
-    alert('No supported wallet connector available');
-  }
-};
+    if (injectedConnector && typeof window !== 'undefined' && window.ethereum) {
+      connect({ connector: injectedConnector, chainId: monad.id });
+    } else if (farcasterConnector) {
+      connect({ connector: farcasterConnector, chainId: monad.id });
+    } else {
+      alert('No supported wallet connector available');
+    }
+  };
 
   return (
     <div className="app-container">
