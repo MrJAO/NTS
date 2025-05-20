@@ -96,18 +96,18 @@ function NTSApp() {
     }
   }, [isConnected]);
 
-  const handleConnect = () => {
-    const injectedConnector = connectors.find(c => c.id === 'injected');
-    const farcasterConnector = connectors.find(c => c.id === 'farcaster');
+const handleConnect = () => {
+  const injectedConnector = connectors.find(c => c.id === 'injected');
+  const farcasterConnector = connectors.find(c => c.id === 'farcaster');
 
-    if (injectedConnector && typeof window !== 'undefined' && window.ethereum) {
-      connect({ connector: injectedConnector });
-    } else if (farcasterConnector) {
-      connect({ connector: farcasterConnector });
-    } else {
-      alert('No supported wallet connector available');
-    }
-  };
+  if (injectedConnector && typeof window !== 'undefined' && window.ethereum) {
+    connect({ connector: injectedConnector, chainId: monad.id });
+  } else if (farcasterConnector) {
+    connect({ connector: farcasterConnector, chainId: monad.id });
+  } else {
+    alert('No supported wallet connector available');
+  }
+};
 
   return (
     <div className="app-container">
