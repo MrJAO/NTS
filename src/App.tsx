@@ -49,12 +49,9 @@ const monad = {
   testnet: true,
 };
 
-// ✅ Correct Mini App detection
-const isWarpcast = typeof window !== 'undefined' && window !== window.parent;
-
 const config = createConfig({
   connectors: [
-    ...(isWarpcast ? [farcasterFrame()] : []),
+    farcasterFrame(),
     injected({ shimDisconnect: true }),
   ],
   chains: [monad],
