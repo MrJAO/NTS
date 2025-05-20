@@ -71,22 +71,25 @@ function NTSApp() {
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
 
-  useEffect(() => {
-    const loadContext = async () => {
-      const context = await sdk.context;
-      if (context?.user) {
-        setFid(context.user.fid ?? null);
-        setUsername(context.user.username ?? null);
-      }
-    };
-    loadContext();
+useEffect(() => {
+  const loadContext = async () => {
+    const context = await sdk.context;
+    if (context?.user) {
+      setFid(context.user.fid ?? null);
+      setUsername(context.user.username ?? null);
+    }
+  };
+  loadContext();
 
-    // Register SIWN callback
-    window.onSignInSuccess = (data) => {
-      setFid(data.fid);
-      setUsername(data.user.username);
-    };
-  }, []);
+  // Notify Warpcast that the app is ready
+  sdk.actions.ready();
+
+  // Register SIWN callback
+  window.onSignInSuccess = (data) => {
+    setFid(data.fid);
+    setUsername(data.user.username);
+  };
+}, []);
 
   const handleConnect = () => {
     const injectedConnector = connectors.find(c => c.id === 'injected');
