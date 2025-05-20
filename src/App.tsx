@@ -49,9 +49,12 @@ const monad = {
   testnet: true,
 };
 
+// ✅ Correct Mini App detection
+const isWarpcast = typeof window !== 'undefined' && window !== window.parent;
+
 const config = createConfig({
   connectors: [
-    farcasterFrame(),
+    ...(isWarpcast ? [farcasterFrame()] : []),
     injected({ shimDisconnect: true }),
   ],
   chains: [monad],
@@ -71,25 +74,23 @@ function NTSApp() {
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
 
-useEffect(() => {
-  const loadContext = async () => {
-    const context = await sdk.context;
-    if (context?.user) {
-      setFid(context.user.fid ?? null);
-      setUsername(context.user.username ?? null);
-    }
-  };
-  loadContext();
+  useEffect(() => {
+    const loadContext = async () => {
+      const context = await sdk.context;
+      if (context?.user) {
+        setFid(context.user.fid ?? null);
+        setUsername(context.user.username ?? null);
+      }
+    };
+    loadContext();
 
-  // Notify Warpcast that the app is ready
-  sdk.actions.ready();
+    sdk.actions.ready();
 
-  // Register SIWN callback
-  window.onSignInSuccess = (data) => {
-    setFid(data.fid);
-    setUsername(data.user.username);
-  };
-}, []);
+    window.onSignInSuccess = (data) => {
+      setFid(data.fid);
+      setUsername(data.user.username);
+    };
+  }, []);
 
   const handleConnect = () => {
     const injectedConnector = connectors.find(c => c.id === 'injected');
@@ -107,24 +108,24 @@ useEffect(() => {
   return (
     <div className="app-container">
       <div className="pixel-header">
-<div className="user-box">
-  <span>🪪 FID: {fid ?? '—'}</span>
-  <span>👤 Username: {username ?? '—'}</span>
-  {!fid && (
-    <div
-      className="neynar_signin"
-      data-client_id="38f06388-85eb-43d3-a1e3-453c4f04c5be"
-      data-success-callback="onSignInSuccess"
-      data-theme="dark"
-    />
-  )}
-  {!fid && (
-    <script
-      src="https://neynarxyz.github.io/siwn/raw/1.2.0/index.js"
-      async
-    ></script>
-  )}
-</div>
+        <div className="user-box">
+          <span>🪪 FID: {fid ?? '—'}</span>
+          <span>👤 Username: {username ?? '—'}</span>
+          {!fid && (
+            <div
+              className="neynar_signin"
+              data-client_id="38f06388-85eb-43d3-a1e3-453c4f04c5be"
+              data-success-callback="onSignInSuccess"
+              data-theme="dark"
+            />
+          )}
+          {!fid && (
+            <script
+              src="https://neynarxyz.github.io/siwn/raw/1.2.0/index.js"
+              async
+            ></script>
+          )}
+        </div>
         <div>
           {isConnected ? (
             <>
