@@ -7,6 +7,7 @@ import {
   createConfig,
   http,
 } from 'wagmi';
+import { switchChain } from 'wagmi/actions';
 import { injected } from 'wagmi/connectors';
 import sdk from '@farcaster/frame-sdk';
 import { farcasterFrame } from '@farcaster/frame-wagmi-connector';
@@ -88,6 +89,12 @@ function NTSApp() {
       setUsername(data.user.username);
     };
   }, []);
+
+  useEffect(() => {
+    if (isConnected) {
+      switchChain(config, { chainId: monad.id }).catch(console.error);
+    }
+  }, [isConnected]);
 
   const handleConnect = () => {
     const injectedConnector = connectors.find(c => c.id === 'injected');
