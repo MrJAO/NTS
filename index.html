@@ -40,13 +40,6 @@
     }' />
   </head>
   <body>
-    <!-- Redirect to frame.html if loaded inside an iframe (Warpcast preview) -->
-    <script>
-      if (window.top !== window.self) {
-        window.location.replace("/frame.html");
-      }
-    </script>
-
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
