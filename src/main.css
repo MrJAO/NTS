@@ -170,7 +170,11 @@ body {
   color: #ffffff;
   margin-top: 8px;
   font-family: 'Press Start 2P', monospace;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
+
 
 /* Tab section layout */
 .tab-section {
