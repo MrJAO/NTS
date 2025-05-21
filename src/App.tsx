@@ -3,9 +3,9 @@ import {
   useAccount,
   useConnect,
   useDisconnect,
+  useSwitchChain,
   WagmiProvider,
 } from 'wagmi'
-import { switchChain } from 'wagmi/actions'
 import { config } from './wagmi'
 import sdk from '@farcaster/frame-sdk'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -29,9 +29,10 @@ function NTSApp() {
   const [username, setUsername] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'stats' | 'boss' | 'leaderboard' | 'rewards'>('stats')
 
-  const { address, isConnected } = useAccount()
+  const { address, isConnected, chainId } = useAccount()
   const { connect, connectors } = useConnect()
   const { disconnect } = useDisconnect()
+  const { switchChain } = useSwitchChain()
 
   useEffect(() => {
     const loadContext = async () => {
@@ -51,10 +52,10 @@ function NTSApp() {
   }, [])
 
   useEffect(() => {
-    if (isConnected) {
-      switchChain(config, { chainId: config.chains[0].id })
+    if (isConnected && chainId !== config.chains[0].id) {
+      switchChain({ chainId: config.chains[0].id })
     }
-  }, [isConnected])
+  }, [isConnected, chainId])
 
   const handleConnect = () => {
     const injectedConnector = connectors.find(c => c.id === 'injected')
