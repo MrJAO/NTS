@@ -36,7 +36,7 @@ function NTSApp() {
   const { switchChain } = useSwitchChain();
   const chainId = useChainId();
 
-  // load Farcaster context
+  //load Farcaster context
   useEffect(() => {
     const loadContext = async () => {
       const context = await sdk.context;

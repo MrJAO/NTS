@@ -25,7 +25,7 @@ export const monad = {
   testnet: true,
 }
 
-// --- connectors: Farcaster first, then fallback to injected wallets ---
+// ---connectors: Farcaster first, then fallback to injected wallets---
 export const config = createConfig({
   chains:     [ monad ],
   connectors: [

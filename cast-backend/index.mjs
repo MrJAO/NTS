@@ -50,7 +50,7 @@ async function initTables() {
 }
 initTables().catch(console.error);
 
-// 🔒 Verify Neynar webhook signature
+//🔒 Verify Neynar webhook signature
 function isValidSignature(req) {
   const secret = process.env.WEBHOOK_SECRET;
   const signature = req.headers['x-neynar-signature'];
