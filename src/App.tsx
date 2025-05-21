@@ -54,15 +54,36 @@ function NTSApp() {
     };
   }, []);
 
-  // auto-connect + switch chain in mini-app
+  // auto-connect + add & switch chain in mini-app
   useEffect(() => {
     if (!isMiniApp || isConnected) return;
     (async () => {
       const farcasterConnector = connectors.find((c) => c.id === 'farcaster');
-      if (farcasterConnector) {
-        await connect({ connector: farcasterConnector });
-        await switchChain({ chainId: config.chains[0].id });
-      }
+      if (!farcasterConnector) return;
+
+      // connect
+      await connect({ connector: farcasterConnector });
+
+      // teach Frame wallet about Monad Testnet, then switch
+      const provider = (await farcasterConnector.getProvider()) as any;
+      const hexId   = `0x${config.chains[0].id.toString(16)}`;
+      await provider.request({
+        method: 'wallet_addEthereumChain',
+        params: [{
+          chainId:           hexId,
+          chainName:         'Monad Testnet',
+          rpcUrls:           ['https://testnet-rpc.monad.xyz'],
+          nativeCurrency:    { name: 'Monad', symbol: 'MON', decimals: 18 },
+          blockExplorerUrls: ['https://explorer.testnet.monad.xyz'],
+        }],
+      }).catch(() => {});
+      await provider.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: hexId }],
+      });
+
+      // sync Wagmi too (optional)
+      await switchChain({ chainId: config.chains[0].id });
     })();
   }, [isMiniApp, isConnected, connectors, connect, switchChain]);
 
@@ -72,15 +93,36 @@ function NTSApp() {
 
     try {
       if (injectedConnector && window.ethereum) {
+        // regular injected flow
         await connect({ connector: injectedConnector });
         await switchChain({ chainId: config.chains[0].id });
       } else if (farcasterConnector) {
+        // Frame flow: connect, add, switch
         await connect({ connector: farcasterConnector });
+
+const provider = (await farcasterConnector.getProvider()) as any;
+        const hexId   = `0x${config.chains[0].id.toString(16)}`;
+        await provider.request({
+          method: 'wallet_addEthereumChain',
+          params: [{
+            chainId:           hexId,
+            chainName:         'Monad Testnet',
+            rpcUrls:           ['https://testnet-rpc.monad.xyz'],
+            nativeCurrency:    { name: 'Monad', symbol: 'MON', decimals: 18 },
+            blockExplorerUrls: ['https://explorer.testnet.monad.xyz'],
+          }],
+        }).catch(() => {});
+        await provider.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: hexId }],
+        });
+
         await switchChain({ chainId: config.chains[0].id });
       } else {
         alert('No supported wallet connector available');
         return;
       }
+
       // reload only after successful switch
       window.location.reload();
     } catch (err) {
