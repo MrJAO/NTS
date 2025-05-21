@@ -29,7 +29,7 @@ export const monad = {
 export const config = createConfig({
   chains:     [ monad ],
   connectors: [
-    // 1) the in‐App Farcaster wallet
+    // 1) the in-App Farcaster wallet (no args!)
     farcasterFrame(),
     // 2) any injected wallet (MetaMask etc) as a fallback
     injected({ shimDisconnect: true }),
