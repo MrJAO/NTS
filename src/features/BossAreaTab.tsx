@@ -508,7 +508,7 @@ case 'create':
 </p>
       {userToken && userToken !== "0x0000000000000000000000000000000000000000" && (
         <p className="mini-note" style={{ fontSize: "10px", marginTop: "6px", color: "#90ee90" }}>
-          ✅ Token created at: {userToken}
+          Last Token Created: {userToken}
         </p>
       )}
     </div>

@@ -175,6 +175,8 @@ if (pfp && typeof pfp === "string" && pfp.startsWith("http")) {
   <li>Per Post Like: 1 damage each (goes to accumulated damage)</li>
   <li>Per Post Comment: 1 damage each (goes to accumulated damage)</li>
   <li>Per Post Qoutes: 1 damage each (goes to accumulated damage)</li>
+  <li>---</li>  
+  <li>Important Note: Submit Onchain Metadata in Boss Area tab to deal damage (not 0)</li>
 </ul>
 
 <ul className="mini-note" style={{ marginTop: "10px", paddingLeft: "20px", textAlign: "left" }}>

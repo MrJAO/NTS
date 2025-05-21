@@ -67,7 +67,7 @@ function NTSApp() {
       await connect({ connector: farcasterConnector });
 
       // teach Frame wallet about Monad Testnet, then switch
-      const provider = (await farcasterConnector.getProvider()) as any;
+      const provider = window.ethereum as any;
       const hexId   = `0x${config.chains[0].id.toString(16)}`;
       await provider.request({
         method: 'wallet_addEthereumChain',
@@ -86,11 +86,16 @@ function NTSApp() {
 
       // sync Wagmi too (optional)
       await switchChain({ chainId: config.chains[0].id });
+
+      // debug: log provider chain
+      const currentProviderChain = await provider.request({ method: 'eth_chainId' });
+      console.log('☑️ Provider eth_chainId:', currentProviderChain);
     })();
   }, [isMiniApp, isConnected, connectors, connect, switchChain]);
 
   // ensure Wagmi always stays on Monad Testnet
   useEffect(() => {
+    console.log('☑️ Wagmi hook chainId:', chainId);
     if (chainId && chainId !== config.chains[0].id) {
       switchChain({ chainId: config.chains[0].id });
     }
@@ -109,7 +114,7 @@ function NTSApp() {
         // Frame flow: connect, add, switch
         await connect({ connector: farcasterConnector });
 
-        const provider = (await farcasterConnector.getProvider()) as any;
+        const provider = window.ethereum as any;
         const hexId   = `0x${config.chains[0].id.toString(16)}`;
         await provider.request({
           method: 'wallet_addEthereumChain',
@@ -127,6 +132,10 @@ function NTSApp() {
         });
 
         await switchChain({ chainId: config.chains[0].id });
+
+        // debug: log provider chain on manual connect
+        const currentProviderChain = await provider.request({ method: 'eth_chainId' });
+        console.log('☑️ Provider eth_chainId after handleConnect:', currentProviderChain);
       } else {
         alert('No supported wallet connector available');
         return;
@@ -165,6 +174,7 @@ function NTSApp() {
           {isConnected ? (
             <>
               <p>🔗 Wallet: {address}</p>
+              <p>⛓️ Wagmi chainId: {chainId}</p>
               <button className="pixel-button" onClick={() => disconnect()}>
                 Disconnect
               </button>

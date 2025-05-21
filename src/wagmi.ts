@@ -1,4 +1,5 @@
 import { farcasterFrame } from '@farcaster/frame-wagmi-connector'
+import { injected } from 'wagmi/connectors'
 import { http, createConfig } from 'wagmi'
 
 // --- define Monad Testnet yourself ---
@@ -29,7 +30,10 @@ const frameConnector = farcasterFrame()
 
 export const config = createConfig({
   chains:     [ monad ],
-  connectors: [ frameConnector ],
+  connectors: [
+    frameConnector,
+    injected({ shimDisconnect: true })
+  ],
   transports: {
     [monad.id]: http(),
   },
