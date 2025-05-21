@@ -82,14 +82,15 @@ function NTSApp() {
     }
   }
 
-  const handleManualSwitch = async () => {
-    try {
-      await switchChain({ chainId: config.chains[0].id })
-      window.location.reload()
-    } catch (err) {
-      console.error('Manual switch chain failed:', err)
-    }
+const handleManualSwitch = async () => {
+  try {
+    await disconnect(); // clear the session
+    alert("👋 Please reconnect your wallet and manually select Monad Testnet.");
+    window.location.reload();
+  } catch (err) {
+    console.error("Manual switch chain fallback failed:", err);
   }
+}
 
   return (
     <>
