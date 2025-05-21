@@ -29,7 +29,7 @@ function NTSApp() {
   const [username, setUsername] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'stats' | 'boss' | 'leaderboard' | 'rewards'>('stats')
 
-  const { address, isConnected, chainId } = useAccount()
+  const { address, isConnected } = useAccount()
   const { connect, connectors } = useConnect()
   const { disconnect } = useDisconnect()
   const { switchChain } = useSwitchChain()
@@ -51,24 +51,25 @@ function NTSApp() {
     }
   }, [])
 
-  useEffect(() => {
-    if (isConnected && chainId !== config.chains[0].id) {
-      switchChain({ chainId: config.chains[0].id })
-    }
-  }, [isConnected, chainId])
+const handleConnect = async () => {
+  const injectedConnector = connectors.find(c => c.id === 'injected')
+  const farcasterConnector = connectors.find(c => c.id === 'farcaster')
 
-  const handleConnect = () => {
-    const injectedConnector = connectors.find(c => c.id === 'injected')
-    const farcasterConnector = connectors.find(c => c.id === 'farcaster')
-
+  try {
     if (injectedConnector && typeof window !== 'undefined' && window.ethereum) {
-      connect({ connector: injectedConnector, chainId: config.chains[0].id })
+      await connect({ connector: injectedConnector })
+      await switchChain({ chainId: config.chains[0].id })
     } else if (farcasterConnector) {
-      connect({ connector: farcasterConnector, chainId: config.chains[0].id })
+      await connect({ connector: farcasterConnector })
+      await switchChain({ chainId: config.chains[0].id })
     } else {
       alert('No supported wallet connector available')
     }
+  } catch (err) {
+    console.error('Wallet connection or chain switch failed:', err)
+    alert('Connection failed. Make sure your wallet supports Monad Testnet.')
   }
+}
 
   return (
     <div className="app-container">
