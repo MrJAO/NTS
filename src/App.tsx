@@ -1,96 +1,107 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react';
 import {
   useAccount,
   useConnect,
   useDisconnect,
   useSwitchChain,
   WagmiProvider,
-} from 'wagmi'
-import { config } from './wagmi'
-import sdk from '@farcaster/frame-sdk'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import StatsTab from './features/StatsTab'
-import BossAreaTab from './features/BossAreaTab'
-import LeaderboardTab from './features/Leaderboard'
-import RewardsTab from './features/Rewards'
-import './main.css'
+} from 'wagmi';
+import { config } from './wagmi';
+import sdk from '@farcaster/frame-sdk';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import StatsTab from './features/StatsTab';
+import BossAreaTab from './features/BossAreaTab';
+import LeaderboardTab from './features/Leaderboard';
+import RewardsTab from './features/Rewards';
+import './main.css';
 
 declare global {
   interface Window {
-    ethereum?: any
-    onSignInSuccess?: (data: any) => void
+    ethereum?: any;
+    onSignInSuccess?: (data: any) => void;
   }
 }
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient();
 
 function NTSApp() {
-  const [fid, setFid] = useState<number | null>(null)
-  const [username, setUsername] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'stats' | 'boss' | 'leaderboard' | 'rewards'>('stats')
-  const [showSwitchPrompt, setShowSwitchPrompt] = useState(false)
+  const [fid, setFid] = useState<number | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'stats' | 'boss' | 'leaderboard' | 'rewards'>('stats');
+  const [showSwitchPrompt, setShowSwitchPrompt] = useState(false);
+  const [isMiniApp, setIsMiniApp] = useState(false);
 
-  const { address, isConnected, chainId } = useAccount()
-  const { connect, connectors } = useConnect()
-  const { disconnect } = useDisconnect()
-  const { switchChain } = useSwitchChain()
+  const { address, isConnected, chainId } = useAccount();
+  const { connect, connectors } = useConnect();
+  const { disconnect } = useDisconnect();
+  const { switchChain } = useSwitchChain();
 
   useEffect(() => {
     const loadContext = async () => {
-      const context = await sdk.context
+      const context = await sdk.context;
       if (context?.user) {
-        setFid(context.user.fid ?? null)
-        setUsername(context.user.username ?? null)
+        setFid(context.user.fid ?? null);
+        setUsername(context.user.username ?? null);
+        setIsMiniApp(true);
       }
-    }
-    loadContext()
-    sdk.actions.ready()
+    };
+    loadContext();
+    sdk.actions.ready();
 
     window.onSignInSuccess = (data) => {
-      setFid(data.fid)
-      setUsername(data.user.username)
-    }
-  }, [])
+      setFid(data.fid);
+      setUsername(data.user.username);
+    };
+  }, []);
 
   useEffect(() => {
     if (isConnected && chainId !== config.chains[0].id) {
-      setShowSwitchPrompt(true)
+      setShowSwitchPrompt(true);
     } else {
-      setShowSwitchPrompt(false)
+      setShowSwitchPrompt(false);
     }
-  }, [isConnected, chainId])
+  }, [isConnected, chainId]);
+
+  useEffect(() => {
+    if (isMiniApp && !isConnected) {
+      const connector = connectors.find((c) => c.id === 'farcaster');
+      if (connector) {
+        connect({ connector });
+        switchChain({ chainId: config.chains[0].id });
+      }
+    }
+  }, [isMiniApp, isConnected, connectors, connect, switchChain]);
 
   const handleConnect = async () => {
-    const injectedConnector = connectors.find(c => c.id === 'injected')
-    const farcasterConnector = connectors.find(c => c.id === 'farcaster')
+    const injectedConnector = connectors.find((c) => c.id === 'injected');
+    const farcasterConnector = connectors.find((c) => c.id === 'farcaster');
 
     try {
       if (injectedConnector && typeof window !== 'undefined' && window.ethereum) {
-        await connect({ connector: injectedConnector })
-        await switchChain({ chainId: config.chains[0].id })
-        window.location.reload()
+        await connect({ connector: injectedConnector });
+        await switchChain({ chainId: config.chains[0].id });
+        window.location.reload();
       } else if (farcasterConnector) {
-        await connect({ connector: farcasterConnector })
-        await switchChain({ chainId: config.chains[0].id })
-        window.location.reload()
+        await connect({ connector: farcasterConnector });
+        await switchChain({ chainId: config.chains[0].id });
+        window.location.reload();
       } else {
-        alert('No supported wallet connector available')
+        alert('No supported wallet connector available');
       }
     } catch (err) {
-      console.error('Wallet connection or chain switch failed:', err)
-      alert('Connection failed. Make sure your wallet supports Monad Testnet.')
+      console.error('Wallet connection or chain switch failed:', err);
+      alert('Connection failed. Make sure your wallet supports Monad Testnet.');
     }
-  }
+  };
 
-const handleManualSwitch = async () => {
-  try {
-    await disconnect(); // clear the session
-    alert("👋 Please reconnect your wallet and manually select Monad Testnet.");
-    window.location.reload();
-  } catch (err) {
-    console.error("Manual switch chain fallback failed:", err);
-  }
-}
+  const handleManualSwitch = async () => {
+    try {
+      await switchChain({ chainId: config.chains[0].id });
+      window.location.reload();
+    } catch (err) {
+      console.error('Manual switch chain failed:', err);
+    }
+  };
 
   return (
     <>
@@ -157,7 +168,7 @@ const handleManualSwitch = async () => {
         {activeTab === 'rewards' && <RewardsTab />}
       </div>
     </>
-  )
+  );
 }
 
 export default function App() {
@@ -167,5 +178,5 @@ export default function App() {
         <NTSApp />
       </WagmiProvider>
     </QueryClientProvider>
-  )
+  );
 }

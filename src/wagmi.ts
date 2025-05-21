@@ -1,6 +1,6 @@
-import { farcasterFrame } from '@farcaster/frame-wagmi-connector'
-import { http, createConfig } from 'wagmi'
-import { monadTestnet } from 'wagmi/chains'
+import { farcasterFrame } from '@farcaster/frame-wagmi-connector';
+import { http, createConfig } from 'wagmi';
+import { monadTestnet } from 'wagmi/chains';
 
 export const config = createConfig({
   chains: [monadTestnet],
@@ -8,10 +8,10 @@ export const config = createConfig({
   transports: {
     [monadTestnet.id]: http(),
   },
-})
+});
 
 declare module 'wagmi' {
   interface Register {
-    config: typeof config
+    config: typeof config;
   }
 }
