@@ -28,14 +28,14 @@ function NTSApp() {
   const [fid, setFid] = useState<number | null>(null);
   const [username, setUsername] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'stats' | 'boss' | 'leaderboard' | 'rewards'>('stats');
-  const [showSwitchPrompt, setShowSwitchPrompt] = useState(false);
   const [isMiniApp, setIsMiniApp] = useState(false);
 
-  const { address, isConnected, chainId } = useAccount();
+  const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
   const { switchChain } = useSwitchChain();
 
+  // load Farcaster context
   useEffect(() => {
     const loadContext = async () => {
       const context = await sdk.context;
@@ -44,9 +44,9 @@ function NTSApp() {
         setUsername(context.user.username ?? null);
         setIsMiniApp(true);
       }
+      sdk.actions.ready();
     };
     loadContext();
-    sdk.actions.ready();
 
     window.onSignInSuccess = (data) => {
       setFid(data.fid);
@@ -54,22 +54,16 @@ function NTSApp() {
     };
   }, []);
 
+  // auto-connect + switch chain in mini-app
   useEffect(() => {
-    if (isConnected && chainId !== config.chains[0].id) {
-      setShowSwitchPrompt(true);
-    } else {
-      setShowSwitchPrompt(false);
-    }
-  }, [isConnected, chainId]);
-
-  useEffect(() => {
-    if (isMiniApp && !isConnected) {
-      const connector = connectors.find((c) => c.id === 'farcaster');
-      if (connector) {
-        connect({ connector });
-        switchChain({ chainId: config.chains[0].id });
+    if (!isMiniApp || isConnected) return;
+    (async () => {
+      const farcasterConnector = connectors.find((c) => c.id === 'farcaster');
+      if (farcasterConnector) {
+        await connect({ connector: farcasterConnector });
+        await switchChain({ chainId: config.chains[0].id });
       }
-    }
+    })();
   }, [isMiniApp, isConnected, connectors, connect, switchChain]);
 
   const handleConnect = async () => {
@@ -77,97 +71,93 @@ function NTSApp() {
     const farcasterConnector = connectors.find((c) => c.id === 'farcaster');
 
     try {
-      if (injectedConnector && typeof window !== 'undefined' && window.ethereum) {
+      if (injectedConnector && window.ethereum) {
         await connect({ connector: injectedConnector });
         await switchChain({ chainId: config.chains[0].id });
-        window.location.reload();
       } else if (farcasterConnector) {
         await connect({ connector: farcasterConnector });
         await switchChain({ chainId: config.chains[0].id });
-        window.location.reload();
       } else {
         alert('No supported wallet connector available');
+        return;
       }
+      // reload only after successful switch
+      window.location.reload();
     } catch (err) {
       console.error('Wallet connection or chain switch failed:', err);
       alert('Connection failed. Make sure your wallet supports Monad Testnet.');
     }
   };
 
-  const handleManualSwitch = async () => {
-    try {
-      await switchChain({ chainId: config.chains[0].id });
-      window.location.reload();
-    } catch (err) {
-      console.error('Manual switch chain failed:', err);
-    }
-  };
-
   return (
-    <>
-      {showSwitchPrompt && (
-        <div className="tab-content text-center" style={{ backgroundColor: "#222", padding: "20px", border: "2px solid #ffcc00", borderRadius: "8px", margin: "20px" }}>
-          <p className="mini-note" style={{ color: "#ffcc00", fontSize: "12px" }}>
-            ⚠️ You're connected to the wrong network.
-          </p>
-          <p className="mini-note" style={{ marginBottom: "12px" }}>
-            Please switch to Monad Testnet to continue.
-          </p>
-          <button className="pixel-button" onClick={handleManualSwitch}>
-            Switch to Monad Testnet
-          </button>
+    <div className="app-container">
+      <div className="pixel-header">
+        <div className="user-box">
+          <span>🪪 FID: {fid ?? '—'}</span>
+          <span>👤 Username: {username ?? '—'}</span>
+          {!fid && (
+            <div
+              className="neynar_signin"
+              data-client_id="38f06388-85eb-43d3-a1e3-453c4f04c5be"
+              data-success-callback="onSignInSuccess"
+              data-theme="dark"
+            />
+          )}
+          {!fid && (
+            <script
+              src="https://neynarxyz.github.io/siwn/raw/1.2.0/index.js"
+              async
+            ></script>
+          )}
         </div>
-      )}
-
-      <div className="app-container">
-        <div className="pixel-header">
-          <div className="user-box">
-            <span>🪪 FID: {fid ?? '—'}</span>
-            <span>👤 Username: {username ?? '—'}</span>
-            {!fid && (
-              <div
-                className="neynar_signin"
-                data-client_id="38f06388-85eb-43d3-a1e3-453c4f04c5be"
-                data-success-callback="onSignInSuccess"
-                data-theme="dark"
-              />
-            )}
-            {!fid && (
-              <script
-                src="https://neynarxyz.github.io/siwn/raw/1.2.0/index.js"
-                async
-              ></script>
-            )}
-          </div>
-          <div>
-            {isConnected ? (
-              <>
-                <p>🔗 Wallet: {address}</p>
-                <button className="pixel-button" onClick={() => disconnect()}>
-                  Disconnect
-                </button>
-              </>
-            ) : (
-              <button className="pixel-button" onClick={handleConnect}>
-                Connect Wallet
+        <div>
+          {isConnected ? (
+            <>
+              <p>🔗 Wallet: {address}</p>
+              <button className="pixel-button" onClick={() => disconnect()}>
+                Disconnect
               </button>
-            )}
-          </div>
+            </>
+          ) : (
+            <button className="pixel-button" onClick={handleConnect}>
+              Connect Wallet
+            </button>
+          )}
         </div>
-
-        <div className="tab-nav">
-          <button className={`pixel-button ${activeTab === 'stats' ? 'active' : ''}`} onClick={() => setActiveTab('stats')}>Stats</button>
-          <button className={`pixel-button ${activeTab === 'boss' ? 'active' : ''}`} onClick={() => setActiveTab('boss')}>Boss Area</button>
-          <button className={`pixel-button ${activeTab === 'leaderboard' ? 'active' : ''}`} onClick={() => setActiveTab('leaderboard')}>Leaderboard</button>
-          <button className={`pixel-button ${activeTab === 'rewards' ? 'active' : ''}`} onClick={() => setActiveTab('rewards')}>Rewards</button>
-        </div>
-
-        {activeTab === 'stats' && <StatsTab fid={fid} />}
-        {activeTab === 'boss' && <BossAreaTab />}
-        {activeTab === 'leaderboard' && <LeaderboardTab />}
-        {activeTab === 'rewards' && <RewardsTab />}
       </div>
-    </>
+
+      <div className="tab-nav">
+        <button
+          className={`pixel-button ${activeTab === 'stats' ? 'active' : ''}`}
+          onClick={() => setActiveTab('stats')}
+        >
+          Stats
+        </button>
+        <button
+          className={`pixel-button ${activeTab === 'boss' ? 'active' : ''}`}
+          onClick={() => setActiveTab('boss')}
+        >
+          Boss Area
+        </button>
+        <button
+          className={`pixel-button ${activeTab === 'leaderboard' ? 'active' : ''}`}
+          onClick={() => setActiveTab('leaderboard')}
+        >
+          Leaderboard
+        </button>
+        <button
+          className={`pixel-button ${activeTab === 'rewards' ? 'active' : ''}`}
+          onClick={() => setActiveTab('rewards')}
+        >
+          Rewards
+        </button>
+      </div>
+
+      {activeTab === 'stats' && <StatsTab fid={fid} />}
+      {activeTab === 'boss' && <BossAreaTab />}
+      {activeTab === 'leaderboard' && <LeaderboardTab />}
+      {activeTab === 'rewards' && <RewardsTab />}
+    </div>
   );
 }
 

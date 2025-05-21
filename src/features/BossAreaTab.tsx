@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
-import { useAccount, useContractRead, useWriteContract } from "wagmi";
+import { useAccount, useContractRead, useWriteContract, } from "wagmi";
 import roastLines from "../constants/roastLines";
 import damageGameArtifact from "../../abis/DamageGame.json";
 import { usePublicClient } from 'wagmi';
-import { monadTestnet } from 'wagmi/chains'
 
 type UserStruct = [
   totalDamage: bigint,
@@ -88,8 +87,8 @@ export default function BossAreaTab() {
   const [generating, setGenerating] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [accumulatedDamage, setAccumulatedDamage] = useState<bigint>(0n);
-  const publicClient = usePublicClient();
-  const { chainId } = useAccount()
+  const publicClient = usePublicClient()!
+  const MONAD_CHAIN_ID = 10143
 
   const { data: bossHealth } = useContractRead({
     address: DAMAGE_GAME_ADDRESS,
@@ -229,10 +228,11 @@ useEffect(() => {
 
 const handleSubmitTxHash = async () => {
   if (!address || !txHashInput) return;
-  if (chainId !== monadTestnet.id) {
-    alert("⚠️ Please switch to Monad Testnet first.");
-    return;
-  }
+const currentChain = await publicClient.getChainId();
+if (currentChain !== MONAD_CHAIN_ID) {
+  alert("⚠️ Please switch to Monad Testnet first.");
+  return;
+}
   try {
     const hashBytes = `0x${txHashInput.replace(/^0x/, "")}`;
     await writeContractAsync({
@@ -249,10 +249,11 @@ const handleSubmitTxHash = async () => {
 };
 
 const handleSpawnBoss = async () => {
-  if (chainId !== monadTestnet.id) {
-    alert("⚠️ Please switch to Monad Testnet first.");
-    return;
-  }
+const currentChain = await publicClient.getChainId();
+if (currentChain !== MONAD_CHAIN_ID) {
+  alert("⚠️ Please switch to Monad Testnet first.");
+  return;
+}
   try {
     setSpawnLoading(true);
     await writeContractAsync({
@@ -345,10 +346,11 @@ for (const contract of FEATURED_NFTS) {
 
 // Submit user TX/follower metadata to smart contract
 const submitMetadata = async () => {
-  if (chainId !== monadTestnet.id) {
-    alert("⚠️ Please switch to Monad Testnet first.");
-    return;
-  }
+const currentChain = await publicClient.getChainId();
+if (currentChain !== MONAD_CHAIN_ID) {
+  alert("⚠️ Please switch to Monad Testnet first.");
+  return;
+}
   try {
     await writeContractAsync({
       address: DAMAGE_GAME_ADDRESS,
@@ -378,11 +380,11 @@ const submitMetadata = async () => {
 
 const handleStake = async () => {
   if (!address || !stakeAmt) return;
-  if (chainId !== monadTestnet.id) {
-    alert("⚠️ Please switch to Monad Testnet before staking.");
-    return;
-  }
-
+const currentChain = await publicClient.getChainId();
+if (currentChain !== MONAD_CHAIN_ID) {
+  alert("⚠️ Please switch to Monad Testnet first.");
+  return;
+}
   setStaking(true);
   try {
     const amt = BigInt(Math.floor(Number(stakeAmt) * 1e18));
@@ -403,11 +405,11 @@ const handleStake = async () => {
 
 const handleCreateToken = async () => {
   if (!address) return;
-  if (chainId !== monadTestnet.id) {
-    alert("⚠️ Please switch to Monad Testnet before creating a token.");
-    return;
-  }
-
+const currentChain = await publicClient.getChainId();
+if (currentChain !== MONAD_CHAIN_ID) {
+  alert("⚠️ Please switch to Monad Testnet first.");
+  return;
+}
   const now = Date.now();
   if (lastTokenCreate > 0 && now < lastTokenCreate * 1000 + 7 * 24 * 60 * 60 * 1000) {
     alert("⏳ You can only create a token once every 7 days.");
