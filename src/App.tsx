@@ -4,6 +4,7 @@ import {
   useConnect,
   useDisconnect,
   useSwitchChain,
+  useChainId,
   WagmiProvider,
 } from 'wagmi';
 import { config } from './wagmi';
@@ -34,6 +35,7 @@ function NTSApp() {
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
   const { switchChain } = useSwitchChain();
+  const chainId = useChainId();
 
   // load Farcaster context
   useEffect(() => {
@@ -87,6 +89,13 @@ function NTSApp() {
     })();
   }, [isMiniApp, isConnected, connectors, connect, switchChain]);
 
+  // ensure Wagmi always stays on Monad Testnet
+  useEffect(() => {
+    if (chainId && chainId !== config.chains[0].id) {
+      switchChain({ chainId: config.chains[0].id });
+    }
+  }, [chainId, switchChain]);
+
   const handleConnect = async () => {
     const injectedConnector = connectors.find((c) => c.id === 'injected');
     const farcasterConnector = connectors.find((c) => c.id === 'farcaster');
@@ -100,7 +109,7 @@ function NTSApp() {
         // Frame flow: connect, add, switch
         await connect({ connector: farcasterConnector });
 
-const provider = (await farcasterConnector.getProvider()) as any;
+        const provider = (await farcasterConnector.getProvider()) as any;
         const hexId   = `0x${config.chains[0].id.toString(16)}`;
         await provider.request({
           method: 'wallet_addEthereumChain',
