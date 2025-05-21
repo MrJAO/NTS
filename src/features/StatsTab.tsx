@@ -185,10 +185,15 @@ if (pfp && typeof pfp === "string" && pfp.startsWith("http")) {
   <li>1. Go to Warpcast/Farcaster ➟ Edit Profile</li>
   <li>2. Go to Verified Addresses</li> 
   <li>3. Click Verify Address</li>  
-  <li>4. Connect and Confirm</li>
-  <li>---</li>  
+  <li>4. Connect and Confirm</li> 
   <li>5. Sign-in using Neynar</li>
-  <li>6. All done, you can navigate freely to the app now</li>
+  <li>---</li> 
+  <li>Important Note: </li>
+  <li>Before interacting in Boss Area make sure to do these two</li> 
+  <li>1. For first time user, click "Refresh Damage" and wait until it fetch your onchain data and farcaster details.</li> 
+  <li>2. Click "Submit Onchain Onchain" to record your current stats and damages. </li> 
+  <li>---</li> 
+  <li>For existing users, You can overwrite onchain data if you increase your previous stats.</li> 
 </ul>
 
 <ul className="mini-note" style={{ marginTop: "10px", paddingLeft: "20px", textAlign: "left" }}>

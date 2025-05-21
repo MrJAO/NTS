@@ -637,7 +637,7 @@ disabled={!address || accumulatedDamage === 0n}
         +1 Like, Comment, Quote will accumulate additional damages
       </p>
       <p className="mini-note" style={{fontSize: "9px", color: "#ffcc00" }}>
-          ⚠️ Accumulated damages will refresh every 5mins  
+          ⚠️ Accumulated damages will refresh every 12hrs  
       </p>
     </div>
   );
@@ -652,6 +652,9 @@ disabled={!address || accumulatedDamage === 0n}
     <div className="tab-content">
       <p className="mini-note" style={{ textAlign: "center", fontSize: "9px", color: "#ffcc00" }}>
           ⚠️ Use Metamask or Farcaster Wallets only  
+      </p>
+      <p className="mini-note" style={{ textAlign: "center", fontSize: "9px", color: "#90ee90" }}>
+        📝 For new users, make sure to read the guides in Stats tab.
       </p>
 
       <h2 className="mini-note" style={{ fontSize: "14px", textAlign: "center", marginBottom: "10px" }}>
@@ -698,13 +701,6 @@ disabled={!address || accumulatedDamage === 0n}
         Submit Onchain Data
       </button>
     )}
-
-    <p className="mini-note" style={{ textAlign: "center", fontSize: "9px", color: "#ffcc00" }}>
-        ⚠️ For new users, Refresh Damage and submit Onchain Data for your actual damages.
-    </p>
-    <p className="mini-note" style={{ textAlign: "center", fontSize: "9px", color: "#90ee90" }}>
-        📝 For existing users, You can overwrite onchain data if you increase your previous stats.
-    </p>
   </div>
 </div>
 
