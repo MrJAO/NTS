@@ -18,7 +18,6 @@ import './main.css';
 
 declare global {
   interface Window {
-    ethereum?: any;
     onSignInSuccess?: (data: any) => void;
   }
 }
@@ -67,7 +66,7 @@ function NTSApp() {
       await connect({ connector: farcasterConnector });
 
       // teach Frame wallet about Monad Testnet, then switch
-      const provider = window.ethereum as any;
+      const provider = sdk.wallet.ethProvider as any;
       const hexId   = `0x${config.chains[0].id.toString(16)}`;
       await provider.request({
         method: 'wallet_addEthereumChain',
@@ -76,7 +75,7 @@ function NTSApp() {
           chainName:         'Monad Testnet',
           rpcUrls:           ['https://testnet-rpc.monad.xyz'],
           nativeCurrency:    { name: 'Monad', symbol: 'MON', decimals: 18 },
-          blockExplorerUrls: ['https://explorer.testnet.monad.xyz'],
+          blockExplorerUrls: ['https://testnet.monadexplorer.com'],
         }],
       }).catch(() => {});
       await provider.request({
@@ -106,7 +105,7 @@ function NTSApp() {
     const farcasterConnector = connectors.find((c) => c.id === 'farcaster');
 
     try {
-      if (injectedConnector && window.ethereum) {
+      if (injectedConnector) {
         // regular injected flow
         await connect({ connector: injectedConnector });
         await switchChain({ chainId: config.chains[0].id });
@@ -114,7 +113,7 @@ function NTSApp() {
         // Frame flow: connect, add, switch
         await connect({ connector: farcasterConnector });
 
-        const provider = window.ethereum as any;
+        const provider = sdk.wallet.ethProvider as any;
         const hexId   = `0x${config.chains[0].id.toString(16)}`;
         await provider.request({
           method: 'wallet_addEthereumChain',
@@ -123,7 +122,7 @@ function NTSApp() {
             chainName:         'Monad Testnet',
             rpcUrls:           ['https://testnet-rpc.monad.xyz'],
             nativeCurrency:    { name: 'Monad', symbol: 'MON', decimals: 18 },
-            blockExplorerUrls: ['https://explorer.testnet.monad.xyz'],
+            blockExplorerUrls: ['https://testnet.monadexplorer.com'],
           }],
         }).catch(() => {});
         await provider.request({

@@ -3,7 +3,7 @@ import { injected } from 'wagmi/connectors'
 import { http, createConfig } from 'wagmi'
 
 // --- define Monad Testnet yourself ---
-const monad = {
+export const monad = {
   id: 10143,
   name: 'Monad Testnet',
   network: 'monad-testnet',
@@ -19,20 +19,20 @@ const monad = {
   blockExplorers: {
     default: {
       name: 'Monad Explorer',
-      url:  'https://explorer.testnet.monad.xyz',
+      url:  'https://testnet.monadexplorer.com',
     },
   },
   testnet: true,
 }
 
-// --- connector (no args!) ---
-const frameConnector = farcasterFrame()
-
+// --- connectors: Farcaster first, then fallback to injected wallets ---
 export const config = createConfig({
   chains:     [ monad ],
   connectors: [
-    frameConnector,
-    injected({ shimDisconnect: true })
+    // 1) the in‐App Farcaster wallet
+    farcasterFrame(),
+    // 2) any injected wallet (MetaMask etc) as a fallback
+    injected({ shimDisconnect: true }),
   ],
   transports: {
     [monad.id]: http(),
