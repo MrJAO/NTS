@@ -68,15 +68,26 @@ function NTSApp() {
       if (injectedConnector && typeof window !== 'undefined' && window.ethereum) {
         await connect({ connector: injectedConnector })
         await switchChain({ chainId: config.chains[0].id })
+        window.location.reload()
       } else if (farcasterConnector) {
         await connect({ connector: farcasterConnector })
         await switchChain({ chainId: config.chains[0].id })
+        window.location.reload()
       } else {
         alert('No supported wallet connector available')
       }
     } catch (err) {
       console.error('Wallet connection or chain switch failed:', err)
       alert('Connection failed. Make sure your wallet supports Monad Testnet.')
+    }
+  }
+
+  const handleManualSwitch = async () => {
+    try {
+      await switchChain({ chainId: config.chains[0].id })
+      window.location.reload()
+    } catch (err) {
+      console.error('Manual switch chain failed:', err)
     }
   }
 
@@ -90,7 +101,7 @@ function NTSApp() {
           <p className="mini-note" style={{ marginBottom: "12px" }}>
             Please switch to Monad Testnet to continue.
           </p>
-          <button className="pixel-button" onClick={() => switchChain({ chainId: config.chains[0].id })}>
+          <button className="pixel-button" onClick={handleManualSwitch}>
             Switch to Monad Testnet
           </button>
         </div>

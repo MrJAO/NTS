@@ -3,6 +3,7 @@ import { useAccount, useContractRead, useWriteContract } from "wagmi";
 import roastLines from "../constants/roastLines";
 import damageGameArtifact from "../../abis/DamageGame.json";
 import { usePublicClient } from 'wagmi';
+import { monadTestnet } from 'wagmi/chains'
 
 type UserStruct = [
   totalDamage: bigint,
@@ -88,6 +89,7 @@ export default function BossAreaTab() {
   const [submitting, setSubmitting] = useState(false);
   const [accumulatedDamage, setAccumulatedDamage] = useState<bigint>(0n);
   const publicClient = usePublicClient();
+  const { chainId } = useAccount()
 
   const { data: bossHealth } = useContractRead({
     address: DAMAGE_GAME_ADDRESS,
@@ -227,14 +229,18 @@ useEffect(() => {
 
 const handleSubmitTxHash = async () => {
   if (!address || !txHashInput) return;
+  if (chainId !== monadTestnet.id) {
+    alert("⚠️ Please switch to Monad Testnet first.");
+    return;
+  }
   try {
     const hashBytes = `0x${txHashInput.replace(/^0x/, "")}`;
-await writeContractAsync({
-  address: DAMAGE_GAME_ADDRESS,
-  abi: damageGameArtifact,
-  functionName: "submitTxHash",
-  args: [hashBytes]
-});
+    await writeContractAsync({
+      address: DAMAGE_GAME_ADDRESS,
+      abi: damageGameArtifact,
+      functionName: "submitTxHash",
+      args: [hashBytes]
+    });
     alert("✅ Damage submitted to boss!");
   } catch (err) {
     console.error("❌ TX submission failed:", err);
@@ -242,28 +248,31 @@ await writeContractAsync({
   }
 };
 
-  const handleSpawnBoss = async () => {
-    try {
-      setSpawnLoading(true);
+const handleSpawnBoss = async () => {
+  if (chainId !== monadTestnet.id) {
+    alert("⚠️ Please switch to Monad Testnet first.");
+    return;
+  }
+  try {
+    setSpawnLoading(true);
+    await writeContractAsync({
+      address: DAMAGE_GAME_ADDRESS,
+      abi: damageGameArtifact,
+      functionName: "spawnBoss",
+    });
 
-      await writeContractAsync({
-        address: DAMAGE_GAME_ADDRESS,
-        abi: damageGameArtifact,
-        functionName: "spawnBoss",
-      });
+    const nextBoss = bossList[Math.floor(Math.random() * bossList.length)];
+    setActiveBoss(nextBoss);
+    localStorage.setItem("activeBoss", nextBoss);
 
-      const nextBoss = bossList[Math.floor(Math.random() * bossList.length)];
-      setActiveBoss(nextBoss);
-      localStorage.setItem("activeBoss", nextBoss);
-
-      alert(`✅ ${nextBoss} has spawned!`);
-    } catch (err) {
-      alert("❌ Failed to spawn boss");
-      console.error("spawnBoss error:", err);
-    } finally {
-      setSpawnLoading(false);
-    }
-  };
+    alert(`✅ ${nextBoss} has spawned!`);
+  } catch (err) {
+    alert("❌ Failed to spawn boss");
+    console.error("spawnBoss error:", err);
+  } finally {
+    setSpawnLoading(false);
+  }
+};
 
 const refreshMultiplier = async () => {
   if (!address) return;
@@ -336,6 +345,10 @@ for (const contract of FEATURED_NFTS) {
 
 // Submit user TX/follower metadata to smart contract
 const submitMetadata = async () => {
+  if (chainId !== monadTestnet.id) {
+    alert("⚠️ Please switch to Monad Testnet first.");
+    return;
+  }
   try {
     await writeContractAsync({
       address: DAMAGE_GAME_ADDRESS,
@@ -365,6 +378,11 @@ const submitMetadata = async () => {
 
 const handleStake = async () => {
   if (!address || !stakeAmt) return;
+  if (chainId !== monadTestnet.id) {
+    alert("⚠️ Please switch to Monad Testnet before staking.");
+    return;
+  }
+
   setStaking(true);
   try {
     const amt = BigInt(Math.floor(Number(stakeAmt) * 1e18));
@@ -385,20 +403,25 @@ const handleStake = async () => {
 
 const handleCreateToken = async () => {
   if (!address) return;
-const now = Date.now();
-if (lastTokenCreate > 0 && now < lastTokenCreate * 1000 + 7 * 24 * 60 * 60 * 1000) {
-  alert("⏳ You can only create a token once every 7 days.");
-  return;
-}
+  if (chainId !== monadTestnet.id) {
+    alert("⚠️ Please switch to Monad Testnet before creating a token.");
+    return;
+  }
+
+  const now = Date.now();
+  if (lastTokenCreate > 0 && now < lastTokenCreate * 1000 + 7 * 24 * 60 * 60 * 1000) {
+    alert("⏳ You can only create a token once every 7 days.");
+    return;
+  }
 
   try {
     setCreatingToken(true);
-await writeContractAsync({
-  address: DAMAGE_GAME_ADDRESS,
-  abi: damageGameArtifact,
-  functionName: "createToken",
-  args: [tokenName, tokenTicker, BigInt(Math.floor(Number(tokenSupply)))],
-});
+    await writeContractAsync({
+      address: DAMAGE_GAME_ADDRESS,
+      abi: damageGameArtifact,
+      functionName: "createToken",
+      args: [tokenName, tokenTicker, BigInt(Math.floor(Number(tokenSupply)))],
+    });
     alert("✅ Token created! Boss took damage.");
   } catch (err) {
     console.error("❌ Token creation failed:", err);
