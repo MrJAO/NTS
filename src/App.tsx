@@ -28,8 +28,9 @@ function NTSApp() {
   const [fid, setFid] = useState<number | null>(null)
   const [username, setUsername] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'stats' | 'boss' | 'leaderboard' | 'rewards'>('stats')
+  const [showSwitchPrompt, setShowSwitchPrompt] = useState(false)
 
-  const { address, isConnected } = useAccount()
+  const { address, isConnected, chainId } = useAccount()
   const { connect, connectors } = useConnect()
   const { disconnect } = useDisconnect()
   const { switchChain } = useSwitchChain()
@@ -51,75 +52,99 @@ function NTSApp() {
     }
   }, [])
 
-const handleConnect = async () => {
-  const injectedConnector = connectors.find(c => c.id === 'injected')
-  const farcasterConnector = connectors.find(c => c.id === 'farcaster')
-
-  try {
-    if (injectedConnector && typeof window !== 'undefined' && window.ethereum) {
-      await connect({ connector: injectedConnector })
-      await switchChain({ chainId: config.chains[0].id })
-    } else if (farcasterConnector) {
-      await connect({ connector: farcasterConnector })
-      await switchChain({ chainId: config.chains[0].id })
+  useEffect(() => {
+    if (isConnected && chainId !== config.chains[0].id) {
+      setShowSwitchPrompt(true)
     } else {
-      alert('No supported wallet connector available')
+      setShowSwitchPrompt(false)
     }
-  } catch (err) {
-    console.error('Wallet connection or chain switch failed:', err)
-    alert('Connection failed. Make sure your wallet supports Monad Testnet.')
+  }, [isConnected, chainId])
+
+  const handleConnect = async () => {
+    const injectedConnector = connectors.find(c => c.id === 'injected')
+    const farcasterConnector = connectors.find(c => c.id === 'farcaster')
+
+    try {
+      if (injectedConnector && typeof window !== 'undefined' && window.ethereum) {
+        await connect({ connector: injectedConnector })
+        await switchChain({ chainId: config.chains[0].id })
+      } else if (farcasterConnector) {
+        await connect({ connector: farcasterConnector })
+        await switchChain({ chainId: config.chains[0].id })
+      } else {
+        alert('No supported wallet connector available')
+      }
+    } catch (err) {
+      console.error('Wallet connection or chain switch failed:', err)
+      alert('Connection failed. Make sure your wallet supports Monad Testnet.')
+    }
   }
-}
 
   return (
-    <div className="app-container">
-      <div className="pixel-header">
-        <div className="user-box">
-          <span>🪪 FID: {fid ?? '—'}</span>
-          <span>👤 Username: {username ?? '—'}</span>
-          {!fid && (
-            <div
-              className="neynar_signin"
-              data-client_id="38f06388-85eb-43d3-a1e3-453c4f04c5be"
-              data-success-callback="onSignInSuccess"
-              data-theme="dark"
-            />
-          )}
-          {!fid && (
-            <script
-              src="https://neynarxyz.github.io/siwn/raw/1.2.0/index.js"
-              async
-            ></script>
-          )}
+    <>
+      {showSwitchPrompt && (
+        <div className="tab-content text-center" style={{ backgroundColor: "#222", padding: "20px", border: "2px solid #ffcc00", borderRadius: "8px", margin: "20px" }}>
+          <p className="mini-note" style={{ color: "#ffcc00", fontSize: "12px" }}>
+            ⚠️ You're connected to the wrong network.
+          </p>
+          <p className="mini-note" style={{ marginBottom: "12px" }}>
+            Please switch to Monad Testnet to continue.
+          </p>
+          <button className="pixel-button" onClick={() => switchChain({ chainId: config.chains[0].id })}>
+            Switch to Monad Testnet
+          </button>
         </div>
-        <div>
-          {isConnected ? (
-            <>
-              <p>🔗 Wallet: {address}</p>
-              <button className="pixel-button" onClick={() => disconnect()}>
-                Disconnect
+      )}
+
+      <div className="app-container">
+        <div className="pixel-header">
+          <div className="user-box">
+            <span>🪪 FID: {fid ?? '—'}</span>
+            <span>👤 Username: {username ?? '—'}</span>
+            {!fid && (
+              <div
+                className="neynar_signin"
+                data-client_id="38f06388-85eb-43d3-a1e3-453c4f04c5be"
+                data-success-callback="onSignInSuccess"
+                data-theme="dark"
+              />
+            )}
+            {!fid && (
+              <script
+                src="https://neynarxyz.github.io/siwn/raw/1.2.0/index.js"
+                async
+              ></script>
+            )}
+          </div>
+          <div>
+            {isConnected ? (
+              <>
+                <p>🔗 Wallet: {address}</p>
+                <button className="pixel-button" onClick={() => disconnect()}>
+                  Disconnect
+                </button>
+              </>
+            ) : (
+              <button className="pixel-button" onClick={handleConnect}>
+                Connect Wallet
               </button>
-            </>
-          ) : (
-            <button className="pixel-button" onClick={handleConnect}>
-              Connect Wallet
-            </button>
-          )}
+            )}
+          </div>
         </div>
-      </div>
 
-      <div className="tab-nav">
-        <button className={`pixel-button ${activeTab === 'stats' ? 'active' : ''}`} onClick={() => setActiveTab('stats')}>Stats</button>
-        <button className={`pixel-button ${activeTab === 'boss' ? 'active' : ''}`} onClick={() => setActiveTab('boss')}>Boss Area</button>
-        <button className={`pixel-button ${activeTab === 'leaderboard' ? 'active' : ''}`} onClick={() => setActiveTab('leaderboard')}>Leaderboard</button>
-        <button className={`pixel-button ${activeTab === 'rewards' ? 'active' : ''}`} onClick={() => setActiveTab('rewards')}>Rewards</button>
-      </div>
+        <div className="tab-nav">
+          <button className={`pixel-button ${activeTab === 'stats' ? 'active' : ''}`} onClick={() => setActiveTab('stats')}>Stats</button>
+          <button className={`pixel-button ${activeTab === 'boss' ? 'active' : ''}`} onClick={() => setActiveTab('boss')}>Boss Area</button>
+          <button className={`pixel-button ${activeTab === 'leaderboard' ? 'active' : ''}`} onClick={() => setActiveTab('leaderboard')}>Leaderboard</button>
+          <button className={`pixel-button ${activeTab === 'rewards' ? 'active' : ''}`} onClick={() => setActiveTab('rewards')}>Rewards</button>
+        </div>
 
-      {activeTab === 'stats' && <StatsTab fid={fid} />}
-      {activeTab === 'boss' && <BossAreaTab />}
-      {activeTab === 'leaderboard' && <LeaderboardTab />}
-      {activeTab === 'rewards' && <RewardsTab />}
-    </div>
+        {activeTab === 'stats' && <StatsTab fid={fid} />}
+        {activeTab === 'boss' && <BossAreaTab />}
+        {activeTab === 'leaderboard' && <LeaderboardTab />}
+        {activeTab === 'rewards' && <RewardsTab />}
+      </div>
+    </>
   )
 }
 

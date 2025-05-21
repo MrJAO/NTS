@@ -491,6 +491,9 @@ case 'create':
       case 'nft':
         return (
           <div className="tab-section">
+            <p className="mini-note" style={{ textAlign: "center", fontSize: "12px", color: "#ffcc00" }}>
+              ⚠️ This feature is not wired in backend yet. Use another features for now.
+            </p>
             <input type="text" placeholder="NFT Name" className="input-box" />
             <input type="text" placeholder="Description" className="input-box" />
             <input type="text" placeholder="Supply" className="input-box" />
